@@ -1,0 +1,17 @@
+name: pypruning
+channels:
+  - conda-forge
+dependencies:
+  - python=3.8
+  - numpy
+  - pylint
+  - scikit-learn
+  - pip
+  - pandas
+  - setuptools
+  - matplotlib
+  - jupyter
+  - tqdm
+  - pip:
+    - -e file:.
+    
