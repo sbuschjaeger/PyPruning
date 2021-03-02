@@ -179,4 +179,4 @@ class RandomPruningClassifier(PruningClassifier):
 
 # Acknowledgements 
 
-Special thanks goes to Henri Petuker (henri.petuker@tu-dortmund.de) who implemented the initial version of many of these algorithms during his bachelor.
+Special thanks goes to Henri Petuker (henri.petuker@tu-dortmund.de) who implemented the initial version of many of these algorithms during his bachelor thesis.
