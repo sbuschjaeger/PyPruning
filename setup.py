@@ -17,7 +17,6 @@ setup(
     long_description='Prune ensembles in Python',
     zip_safe=False,
     install_requires = [
-        "python",
         "numpy",
         "scikit-learn",
         "pip",
