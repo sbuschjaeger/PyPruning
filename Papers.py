@@ -1,6 +1,6 @@
 from functools import partial 
 
-from ILPPruningClassifier import ILPPruningClassifier
+from MIQPPruningClassifier import MIQPPruningClassifier
 from GreedyPruningClassifier import GreedyPruningClassifier
 
 import Metrics
@@ -8,7 +8,7 @@ import Metrics
 def create_pruner(optimizer = "Greedy", paper = "margineantu1997", **kwargs):
     optimizer = optimizer.lower()
     
-    assert optimizer in ["greedy", "ilp"], "You provided {} as optimizer, but we only support {{Greedy, ILP}}".format(optimizer)
+    assert optimizer in ["greedy", "miqp"], "You provided {} as optimizer, but we only support {{Greedy, MIQP}}".format(optimizer)
 
     assert paper in ["margineantu1997", "lazarevic2001", "lu2010", "guo2018", "cavalcanti2016", "zhang2006"], "You provided {} as optimizer, but we only support {{margineantu1997, lazarevic2001, lu2010, guo2018, cavalcanti2016, zhang2006}}".format(paper)
 
@@ -51,8 +51,8 @@ def create_pruner(optimizer = "Greedy", paper = "margineantu1997", **kwargs):
 
     if optimizer == "greedy":
         return GreedyPruningClassifier(single_metric=single_metric, pairwise_metric=pairwise_metric, l_reg = l_reg, **kwargs)
-    elif optimizer == "ilp":
-        return ILPPruningClassifier(single_metric=single_metric, pairwise_metric=pairwise_metric, l_reg = l_reg, **kwargs)
+    elif optimizer == "miqp":
+        return MIQPPruningClassifier(single_metric=single_metric, pairwise_metric=pairwise_metric, l_reg = l_reg, **kwargs)
     else:
         # should not happen
         return None

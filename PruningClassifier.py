@@ -18,6 +18,7 @@ class PruningClassifier(ABC, BaseEstimator, ClassifierMixin):
         self.n_jobs = n_jobs
 
         assert base_estimator is None or isinstance(base_estimator, (RandomForestClassifier, ExtraTreesClassifier)), "If you want to train a model prior to please supply {{RandomForestClassifier, ExtraTreesClassifier}} for training. If you want to prune a custom classifier, pass None and call prune manually"
+        assert n_jobs >= 1, "n_jobs must be at-least 1"
 
     @abstractmethod
     def prune_(self, proba, target):
@@ -38,10 +39,13 @@ class PruningClassifier(ABC, BaseEstimator, ClassifierMixin):
             proba.append(h.predict_proba(X))
         proba = np.array(proba)
 
+        self.estimators_ = copy.deepcopy(estimators)
         idx, weights = self.prune_(proba, y)        
-        self.estimators_ = []
+        estimators_ = []
         for i in idx:
-            self.estimators_.append(copy.deepcopy(estimators[i]))
+            estimators_.append(self.estimators_[i])
+        
+        self.estimators_ = estimators_
         self.weights_ = weights 
         
         return self

@@ -15,5 +15,14 @@ setup(
     author_email='sebastian.buschjaeger@tu-dortmund.de',
     description='Prune ensembles in Python',
     long_description='Prune ensembles in Python',
-    zip_safe=False
+    zip_safe=False,
+    install_requires = [
+        "python"
+        "numpy"
+        "scikit-learn"
+        "pip"
+        "setuptools"
+        "tqdm"
+        "cvxpy"
+    ]
 )

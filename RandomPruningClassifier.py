@@ -2,6 +2,7 @@ import numpy as np
 
 from PruningClassifier import PruningClassifier
 
+# TODO Add random seed
 class RandomPruningClassifier(PruningClassifier):
 
     def __init__(self, 

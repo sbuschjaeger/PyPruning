@@ -108,20 +108,20 @@ def combined(iproba, jproba, target):
     jproba = jproba.argmax(axis=1)
 
     m = len(iproba)
-    a = 0   #h1 and h2 correct
-    b = 0   #h1 correct, h2 incorrect
-    c = 0   #h1 incorrect, h2 correct
-    d = 0   #h1 and h2 incorrect
+    a = 0.0   #h1 and h2 correct
+    b = 0.0   #h1 correct, h2 incorrect
+    c = 0.0   #h1 incorrect, h2 correct
+    d = 0.0   #h1 and h2 incorrect
     
     for j in range(m):
         if(iproba[j] == target[j] and jproba[j] == target[j]):
-            a = a + 1
+            a = a + 1.0
         elif(iproba[j] == target[j] and jproba[j] != target[j]):
-            b = b + 1
+            b = b + 1.0
         elif(iproba[j] != target[j] and jproba[j] == target[j]):
-            c = c + 1
+            c = c + 1.0
         else:
-            d = d + 1
+            d = d + 1.0
     
     # calculate the 5 different metrics
     # 1) disagreement measure 
@@ -130,7 +130,7 @@ def combined(iproba, jproba, target):
     # 2) qstatistic
     # rare case: divison by zero
     if((a*d) + (b*c) == 0):
-        qstatistic = ((a*d) - (b*c)) / 1 
+        qstatistic = ((a*d) - (b*c)) / 1.0
     else:
         qstatistic = ((a*d) - (b*c)) / ((a*d) + (b*c))
         
@@ -154,7 +154,7 @@ def combined(iproba, jproba, target):
     doublefault = d / m
     
     # all equally weighted; disagreement times (-1) so that all metrics are minimized
-    return ((disagree * -1) + qstatistic + correlation + kappa + doublefault) / 5  
+    return ((disagree * -1.0) + qstatistic + correlation + kappa + doublefault) / 5.0  
 
 # Paper:   Effective pruning of neural network classifier ensembles
 # Authors: Lazarevic et al. 2001

@@ -55,6 +55,7 @@ class GreedyPruningClassifier(PruningClassifier):
             for _ in range(self.n_estimators - 1):
                 selected_proba = proba[selected_models,:].sum(axis=0)
                 scores = []
+                # TODO IS THIS CORRECT? THIS DOES NOT SEEM TO BE PAIRWISE?
                 for i in not_seleced_models:
                     pairwise_score = self.l_reg * self.pairwise_metric(proba[i, :], selected_proba, target)
                     if self.l_reg < 1:
