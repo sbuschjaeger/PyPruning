@@ -10,14 +10,14 @@ from sklearn.metrics import accuracy_score
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.datasets import load_digits
 
-from Metrics import error, neg_auc, individual_contribution, margin_diversity, kappa_statistic, combined, disagreement, q_zhang06
+from PyPruning.Metrics import error, neg_auc, individual_contribution, margin_diversity, kappa_statistic, combined, disagreement, q_zhang06
 
-from GreedyPruningClassifier import GreedyPruningClassifier
-from MIQPPruningClassifier import MIQPPruningClassifier
-from RandomPruningClassifier import RandomPruningClassifier
-from ProxPruningClassifier import ProxPruningClassifier
+from PyPruning.GreedyPruningClassifier import GreedyPruningClassifier
+from PyPruning.MIQPPruningClassifier import MIQPPruningClassifier
+from PyPruning.RandomPruningClassifier import RandomPruningClassifier
+from PyPruning.ProxPruningClassifier import ProxPruningClassifier
 
-from Papers import create_pruner
+from PyPruning.Papers import create_pruner
 
 data, target = load_digits(return_X_y = True)
 

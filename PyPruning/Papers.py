@@ -2,7 +2,8 @@ from functools import partial
 
 from .MIQPPruningClassifier import MIQPPruningClassifier
 from .GreedyPruningClassifier import GreedyPruningClassifier
-from .Metrics import Metrics
+#from .Metrics import Metrics
+from .Metrics import error, margin_diversity, individual_contribution, kappa_statistic, disagreement, q_zhang06, combined
 
 def create_pruner(optimizer = "Greedy", paper = "margineantu1997", **kwargs):
     optimizer = optimizer.lower()
@@ -12,37 +13,37 @@ def create_pruner(optimizer = "Greedy", paper = "margineantu1997", **kwargs):
     assert paper in ["margineantu1997", "lazarevic2001", "lu2010", "guo2018", "cavalcanti2016", "zhang2006"], "You provided {} as optimizer, but we only support {{margineantu1997, lazarevic2001, lu2010, guo2018, cavalcanti2016, zhang2006}}".format(paper)
 
     if paper == "lu2010":
-        single_metric = Metrics.individual_contribution
+        single_metric = individual_contribution
         pairwise_metric = None
         l_reg = 0
     elif paper == "guo2018":
-        single_metric = partial(Metrics.margin_diversity, alpha = 0.2)
+        single_metric = partial(margin_diversity, alpha = 0.2)
         pairwise_metric = None
         l_reg = 0
     elif paper == "margineantu1997":
         if optimizer == "greedy":
-            single_metric = Metrics.error
+            single_metric = error
         else:
             single_metric = None
-        pairwise_metric = Metrics.kappa_statistic
+        pairwise_metric = kappa_statistic
         l_reg = 1
     elif paper == "lazarevic2001":
         if optimizer == "greedy":
-            single_metric = Metrics.error
+            single_metric = error
         else:
             single_metric = None
-        pairwise_metric = Metrics.disagreement
+        pairwise_metric = disagreement
         l_reg = 1
     elif paper == "zhang2006":
-        single_metric = Metrics.error
-        pairwise_metric = Metrics.q_zhang06
+        single_metric = error
+        pairwise_metric = q_zhang06
         l_reg = 0.5
     elif paper == "cavalcanti2016":
         if optimizer == "greedy":
-            single_metric = Metrics.error
+            single_metric = error
         else:
             single_metric = None
-        pairwise_metric = Metrics.combined
+        pairwise_metric = combined
         l_reg = 1
     else:
         # should not happen
