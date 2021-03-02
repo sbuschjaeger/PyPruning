@@ -176,3 +176,7 @@ class RandomPruningClassifier(PruningClassifier):
         else:
             return np.random.choice(range(0, n_received),size=self.n_estimators), [1.0 / self.n_estimators for _ in range(self.n_estimators)]
 ```
+
+# Acknowledgements 
+
+Special thanks goes to Henri Petuker (henri.petuker@tu-dortmund.de) who implemented the initial version of many of these algorithms during his bachelor.
