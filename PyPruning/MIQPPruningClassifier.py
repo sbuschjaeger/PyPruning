@@ -4,9 +4,9 @@ import cvxpy as cp
 from cvxpy import atoms
 from joblib import Parallel,delayed
 
-from PruningClassifier import PruningClassifier
+from . import PruningClassifier
 
-from Metrics import error
+from .Metrics import error
 
 
 # transform matrix Q according to transformation 4.3

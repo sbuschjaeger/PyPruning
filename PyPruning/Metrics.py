@@ -2,8 +2,6 @@ import numpy as np
 from sklearn import metrics
 from sklearn.metrics import roc_auc_score, cohen_kappa_score
 
-# TODO RENAME ACCURACY AND AUC
-
 # accuracy for ensemble pruning
 # Uses the sklearn-implementation
 # def accuracy(iproba, jproba, target):

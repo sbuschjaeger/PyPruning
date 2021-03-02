@@ -1,6 +1,6 @@
 import numpy as np
 
-from PruningClassifier import PruningClassifier
+from . import PruningClassifier
 
 # TODO Add random seed
 class RandomPruningClassifier(PruningClassifier):

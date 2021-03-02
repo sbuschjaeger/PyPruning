@@ -1,9 +1,8 @@
 from functools import partial 
 
-from MIQPPruningClassifier import MIQPPruningClassifier
-from GreedyPruningClassifier import GreedyPruningClassifier
-
-import Metrics
+from . import MIQPPruningClassifier
+from . import GreedyPruningClassifier
+from . import Metrics
 
 def create_pruner(optimizer = "Greedy", paper = "margineantu1997", **kwargs):
     optimizer = optimizer.lower()

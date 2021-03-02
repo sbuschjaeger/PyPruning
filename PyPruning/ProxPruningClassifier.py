@@ -9,7 +9,7 @@ from sklearn.metrics import accuracy_score
 from scipy.special import softmax
 from sklearn.tree import DecisionTreeClassifier
 
-from PruningClassifier import PruningClassifier
+from . import PruningClassifier
 
 # Modified from https://stackoverflow.com/questions/38157972/how-to-implement-mini-batch-gradient-descent-in-python
 def create_mini_batches(inputs, targets, batch_size, shuffle=False):
