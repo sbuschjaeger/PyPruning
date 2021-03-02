@@ -4,9 +4,9 @@ from sklearn.metrics import accuracy_score, roc_auc_score
 
 from joblib import Parallel,delayed
 
-from PruningClassifier import PruningClassifier
+from .PruningClassifier import PruningClassifier
 
-from Metrics import error
+from .Metrics import error
 
 class GreedyPruningClassifier(PruningClassifier):
 

@@ -4,7 +4,7 @@ import cvxpy as cp
 from cvxpy import atoms
 from joblib import Parallel,delayed
 
-from . import PruningClassifier
+from .PruningClassifier import PruningClassifier
 
 from .Metrics import error
 
