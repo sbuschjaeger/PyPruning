@@ -16,6 +16,7 @@ setup(
     description='Prune ensembles in Python',
     long_description='Prune ensembles in Python',
     zip_safe=False,
+    packages=['PyPruning'],
     install_requires = [
         "numpy",
         "scikit-learn",
