@@ -31,18 +31,18 @@ class PruningClassifier(ABC, BaseEstimator, ClassifierMixin):
                 self.n_classes_ = max(classes)
             else:
                 self.n_classes_ = classes[0]
-                
+
         # TODO parallelize this
         proba = []
         for h in estimators:
             proba.append(h.predict_proba(X))
         proba = np.array(proba)
 
-        idx = self.prune_(proba, y)        
+        idx, weights = self.prune_(proba, y)        
         self.estimators_ = []
         for i in idx:
             self.estimators_.append(copy.deepcopy(estimators[i]))
-        self.weights_ = [1.0/len(idx) for _ in idx]
+        self.weights_ = weights 
         
         return self
 

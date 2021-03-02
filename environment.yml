@@ -1,6 +1,7 @@
 name: pypruning
 channels:
   - conda-forge
+  - gurobi
 dependencies:
   - python=3.8
   - numpy
@@ -12,6 +13,8 @@ dependencies:
   - matplotlib
   - jupyter
   - tqdm
+  - gurobi
   - pip:
+    - cvxpy
+    # - cvxopt
     - -e file:.
-    
