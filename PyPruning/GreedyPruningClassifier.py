@@ -12,13 +12,14 @@ class GreedyPruningClassifier(PruningClassifier):
 
     def __init__(self, 
         n_estimators = 5, 
-        base_estimator = None, 
         single_metric = error,
         pairwise_metric = None, 
         l_reg = 0, 
         n_jobs = 8):
-        
-        super().__init__(n_estimators, base_estimator, n_jobs)
+
+        super().__init__()
+
+        self.n_estimators = n_estimators
         self.n_jobs = n_jobs
         self.single_metric = single_metric
         self.pairwise_metric = pairwise_metric
@@ -29,7 +30,7 @@ class GreedyPruningClassifier(PruningClassifier):
 
         # TODO Do we want to keep this?
         if single_metric is None:
-            print("Warning: You did not provide a single_metrics. Even if you set l_reg = 1 (no single_metric is used) you still need to provide one to select the first model. Fixing this for you and defaulting to single_metric = error.")
+            print("Warning: You did not provide a single_metric. Even if you set l_reg = 1 (no single_metric is used) you still need to provide one to select the first model for the greedy optimization. Fixing this for you and defaulting to single_metric = error.")
             self.single_metric = error
 
         if pairwise_metric is None and l_reg > 0:

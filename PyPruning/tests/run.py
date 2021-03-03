@@ -50,10 +50,21 @@ for p in [ "margineantu1997", "lazarevic2001", "lu2010", "guo2018", "cavalcanti2
     # print("Accuracy of {} via MIQP with {} estimators: {} %".format(p, n_prune, 100.0 * accuracy_score(ytest, pred)))
     # print("")
 
-pruned_model = ProxPruningClassifier(n_estimators=n_prune, epochs=20, step_size=1e-2, l_reg=1e-4, batch_size=32, verbose=False, loss="cross-entropy") 
+
+pruned_model = ProxPruningClassifier(l_ensemble_reg=1e-3, epochs=25, step_size=1e-2, ensemble_regularizer="L1", batch_size=32, verbose=False, loss="mse", normalize_weights=True, l_tree_reg=1e-3) 
 pruned_model.prune(Xprune, yprune, model.estimators_)
 pred = pruned_model.predict(Xtest)
-print("Accuracy of ProxPruningClassifier with {} estimators: {} %".format(n_prune, 100.0 * accuracy_score(ytest, pred)))
+print("Accuracy of ProxPruningClassifier L1 with {} estimators: {} %".format(n_prune, 100.0 * accuracy_score(ytest, pred)))
+
+pruned_model = ProxPruningClassifier(l_ensemble_reg=1e-3, epochs=25, step_size=1e-2, ensemble_regularizer="L0", batch_size=32, verbose=False, loss="mse",normalize_weights=True, l_tree_reg=1e-3) 
+pruned_model.prune(Xprune, yprune, model.estimators_)
+pred = pruned_model.predict(Xtest)
+print("Accuracy of ProxPruningClassifier L0 with {} estimators: {} %".format(n_prune, 100.0 * accuracy_score(ytest, pred)))
+
+pruned_model = ProxPruningClassifier(l_ensemble_reg=8, epochs=25, step_size=1e-2, ensemble_regularizer="hard-L1", batch_size=32, verbose=False, loss="mse",normalize_weights=True, l_tree_reg=1e-3) 
+pruned_model.prune(Xprune, yprune, model.estimators_)
+pred = pruned_model.predict(Xtest)
+print("Accuracy of ProxPruningClassifier hard-L1 with {} estimators: {} %".format(n_prune, 100.0 * accuracy_score(ytest, pred)))
 
 pruned_model = RandomPruningClassifier(n_estimators = n_prune)
 pruned_model.prune(Xprune, yprune, model.estimators_)

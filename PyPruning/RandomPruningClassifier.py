@@ -5,12 +5,10 @@ from .PruningClassifier import PruningClassifier
 # TODO Add random seed
 class RandomPruningClassifier(PruningClassifier):
 
-    def __init__(self, 
-        n_estimators = 5, 
-        base_estimator = None, 
-        n_jobs = 8):
+    def __init__(self, n_estimators = 5):
         
-        super().__init__(n_estimators, base_estimator, n_jobs)
+        super().__init__()
+        self.n_estimators = n_estimators
 
     def prune_(self, proba, target):
         n_received = len(proba)

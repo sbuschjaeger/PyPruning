@@ -37,14 +37,14 @@ class MIQPPruningClassifier(PruningClassifier):
 
     def __init__(self, 
         n_estimators = 5, 
-        base_estimator = None, 
         single_metric = error,
         pairwise_metric = None, 
         l_reg = 0,
         verbose = False,
         n_jobs = 8):
         
-        super().__init__(n_estimators, base_estimator, n_jobs)
+        super().__init__()
+        self.n_estimators = n_estimators
         self.n_jobs = n_jobs
         self.single_metric = single_metric
         self.pairwise_metric = pairwise_metric
@@ -55,11 +55,13 @@ class MIQPPruningClassifier(PruningClassifier):
         assert pairwise_metric is not None or single_metric is not None, "You did not provide a single_metric or pairwise_metric. Please provide at-least one of them"
 
         if single_metric is None and l_reg < 1:
-            print("Warning: You did not provide a single_metrics, but set l_reg < 1. This does not make sense. Setting l_reg = 1 for you.")
+            print("Warning: You did not provide a single_metric, but set l_reg < 1. This does not make sense. Setting l_reg = 1 for you.")
+            self.l_reg = 1
 
         if pairwise_metric is None and l_reg > 0:
             print("Warning: You did not provide a pairwise_metric, but set l_reg > 0. This does not make sense. Setting l_reg = 0 for you.")
-
+            self.l_reg = 0
+            
     def prune_(self, proba, target):
         n_received = len(proba)
         if self.n_estimators >= n_received:

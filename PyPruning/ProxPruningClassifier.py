@@ -2,6 +2,7 @@ import numpy as np
 from joblib import Parallel, delayed
 import numbers
 import time
+from sklearn import ensemble
 from tqdm import tqdm
 import os
 from sklearn.metrics import accuracy_score
@@ -29,6 +30,7 @@ def create_mini_batches(inputs, targets, batch_size, shuffle=False):
 
         yield inputs[excerpt], targets[excerpt]
 
+# See https://eng.ucmerced.edu/people/wwang5/papers/SimplexProj.pdf for details
 def to_prob_simplex(x):
     if x is None or len(x) == 0:
         return x
@@ -45,43 +47,43 @@ def to_prob_simplex(x):
 
 class ProxPruningClassifier(PruningClassifier):
     def __init__(self,
-        n_estimators,
-        base_estimator = None,
-        n_jobs = 1,
         loss = "cross-entropy",
         step_size = 1e-1,
-        regularizer = "node",
-        l_reg = 0,
+        ensemble_regularizer = "L1",
+        l_ensemble_reg = 0,  
+        tree_regularizer = "node",
+        l_tree_reg = 0,
         normalize_weights = True,
         batch_size = 256,
         epochs = 1,
-        verbose = True, 
+        verbose = False, 
         out_path = None,
         eval_every_epochs = None):
 
         assert loss in ["mse","cross-entropy","hinge2"], "Currently only {{mse, cross-entropy, hinge2}} loss is supported"
-        assert l_reg >= 0, "l_reg must be greate or equal to 0"
-        assert regularizer is None or regularizer in ["node"], "Currently only {{none, node}} regularizer is supported for tree the regularizer."
+        assert ensemble_regularizer is None or ensemble_regularizer in ["none","L0", "L1", "hard-L1"], "Currently only {{none,L0, L1, hard-L1}} the ensemble regularizer is supported"
+        assert l_tree_reg >= 0, "l_reg must be greate or equal to 0"
+        assert tree_regularizer is None or tree_regularizer in ["node"], "Currently only {{none, node}} regularizer is supported for tree the regularizer."
         assert batch_size >= 1, "batch_size must be at-least 1"
         assert epochs >= 1, "epochs must be at-least 1"
 
-        super().__init__(n_estimators, base_estimator, n_jobs)
+        if ensemble_regularizer == "hard-L1":
+            assert l_ensemble_reg >= 1 or l_ensemble_reg == 0, "You chose ensemble_regularizer = hard-L1, but set 0 < l_ensemble_reg < 1 which does not really makes sense. If hard-L1 is set, then l_ensemble_reg is the maximum number of estimators in the pruned ensemble, thus likely an integer value >= 1."
+
+        super().__init__()
         
         self.loss = loss
         self.step_size = step_size
-        self.regularizer = regularizer
-        self.l_reg = l_reg
+        self.ensemble_regularizer = ensemble_regularizer
+        self.l_ensemble_reg = l_ensemble_reg
+        self.tree_regularizer = tree_regularizer
+        self.l_tree_reg = l_tree_reg
         self.normalize_weights = normalize_weights
         self.batch_size = batch_size
         self.epochs = epochs
         self.verbose = verbose
         self.out_path = out_path
         self.eval_every_epochs = eval_every_epochs
-
-    def _combine_proba(self, all_proba):
-        scaled_prob = np.array([w * p for w,p in zip(all_proba, self.weights_)])
-        combined_proba = np.sum(scaled_prob, axis=0)
-        return combined_proba
 
     def next(self, proba, target):
         proba = np.swapaxes(proba, 0, 1)
@@ -112,26 +114,37 @@ class ProxPruningClassifier(PruningClassifier):
         else:
             raise "Currently only the losses {{cross-entropy, mse, hinge2}} are supported, but you provided: {}".format(self.loss)
         
-        loss = np.mean(loss) 
+        loss = np.sum(np.mean(loss,axis=1))
         
-        # Compute the gradient for the loss
+        if self.ensemble_regularizer == "L0":
+            loss += self.l_ensemble_reg * np.linalg.norm(self.weights_,0)
+        elif self.ensemble_regularizer == "L1":
+            loss += self.l_ensemble_reg * np.linalg.norm(self.weights_,1)
+
+        # Compute the gradients for the loss
         directions = np.mean(proba*loss_deriv,axis=(1,2))
 
         # Compute the appropriate regularizer
-        if self.regularizer == "node" and self.l_reg > 0:
-            loss += self.l_reg * np.sum( [ (w * est.tree_.node_count) for w, est in zip(self.weights_, self.estimators_)] )
+        if self.tree_regularizer == "node" and self.l_tree_reg > 0:
+            loss += self.l_tree_reg * np.sum( [ (w * est.tree_.node_count) for w, est in zip(self.weights_, self.estimators_)] )
             
-            node_deriv = self.l_reg * np.array([ est.tree_.node_count for est in self.estimators_])
+            node_deriv = self.l_tree_reg * np.array([ est.tree_.node_count for est in self.estimators_])
         else:
             node_deriv = 0
 
-        # Perform the gradient step + top-K projection 
+        # Perform the gradient step + projection 
         tmp_w = self.weights_ - self.step_size*directions - self.step_size*node_deriv
-        # print(tmp_w[0:5])
-        #print(self.weights_[0:5])
         
-        top_K = np.argsort(tmp_w)[-self.n_estimators:]
-        tmp_w = np.array([w if i in top_K else 0 for i,w in enumerate(tmp_w)])
+        if self.ensemble_regularizer == "L0":
+            tmp = np.sqrt(2 * self.l_ensemble_reg * self.step_size)
+            tmp_w = np.array([0 if abs(w) < tmp else w for w in tmp_w])
+        elif self.ensemble_regularizer == "L1":
+            sign = np.sign(tmp_w)
+            tmp_w = np.abs(tmp_w) - self.step_size*self.l_ensemble_reg
+            tmp_w = sign*np.maximum(tmp_w,0)
+        elif self.ensemble_regularizer == "hard-L1":
+            top_K = np.argsort(tmp_w)[-self.l_ensemble_reg:]
+            tmp_w = np.array([w if i in top_K else 0 for i,w in enumerate(tmp_w)])
 
         # If set, normalize the weights. Note that we use the support of tmp_w for the projection onto the probability simplex
         # as described in http://proceedings.mlr.press/v28/kyrillidis13.pdf
@@ -145,6 +158,7 @@ class ProxPruningClassifier(PruningClassifier):
                 self.weights_[i] = w
         else:
             self.weights_ = tmp_w
+        
         return {"loss":loss, "accuracy": accuracy, "num_trees": n_trees, "num_parameters" : n_param}
 
     def num_trees(self):

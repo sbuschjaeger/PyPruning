@@ -7,18 +7,19 @@ from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier
 
 from sklearn.base import BaseEstimator, ClassifierMixin
 
-class PruningClassifier(ABC, BaseEstimator, ClassifierMixin): 
+#BaseEstimator, ClassifierMixin
+class PruningClassifier(ABC): 
     
-    def __init__(self, n_estimators = 5, base_estimator = None, n_jobs = 8):
+    def __init__(self):
         self.weights_ = None
         self.estimators_ = None
-        self.n_estimators = n_estimators
-        self.base_estimator = base_estimator
         self.n_classes_ = None
-        self.n_jobs = n_jobs
+        #self.n_estimators = n_estimators
+        #self.base_estimator = base_estimator
+        #self.n_jobs = n_jobs
 
-        assert base_estimator is None or isinstance(base_estimator, (RandomForestClassifier, ExtraTreesClassifier)), "If you want to train a model prior to please supply {{RandomForestClassifier, ExtraTreesClassifier}} for training. If you want to prune a custom classifier, pass None and call prune manually"
-        assert n_jobs >= 1, "n_jobs must be at-least 1"
+        #assert base_estimator is None or isinstance(base_estimator, (RandomForestClassifier, ExtraTreesClassifier)), "If you want to train a model prior to please supply {{RandomForestClassifier, ExtraTreesClassifier}} for training. If you want to prune a custom classifier, pass None and call prune manually"
+        #assert n_jobs >= 1, "n_jobs must be at-least 1"
 
     @abstractmethod
     def prune_(self, proba, target):
@@ -50,12 +51,12 @@ class PruningClassifier(ABC, BaseEstimator, ClassifierMixin):
         
         return self
 
-    def fit(self, X, y):
-        self.n_classes_ = len(set(y))
-        model = self.base_estimator.fit(X,y)
-        self.prune_(X, model.estimators_)
+    # def fit(self, X, y):
+    #     self.n_classes_ = len(set(y))
+    #     model = self.base_estimator.fit(X,y)
+    #     self.prune_(X, model.estimators_)
 
-        return self
+    #     return self
 
     def _individual_proba(self, X):
         assert self.estimators_ is not None, "Call prune before calling predict_proba!"
