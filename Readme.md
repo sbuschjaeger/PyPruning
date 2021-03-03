@@ -71,26 +71,11 @@ pred = pruned_model.predict(Xtest)
 print("MIQPPruningClassifier with {} estimators and {} metric is {} %".format(n_prune, m.__name__, 100.0 * accuracy_score(ytest, pred)))
 ```
 
-Each pruning method has the following common interface:
-
-```Python
-def __init__(self, n_estimators = 5, base_estimator = None, n_jobs = 8):
-    self.n_estimators = n_estimators
-    self.base_estimator = base_estimator
-    self.n_jobs = n_jobs
-```
-
-where 
-- `n_estimators` is the size of the _pruned_ ensemble
-- `base_estimator` is an object to train a new ensemble (see below) 
-- `n_jobs` is the number of jobs used for computing all the scores. Note that `n_jobs` currently does not have any impact on the number of cores used by a the MIQP solver. 
-
 To prune a set of estimators just call
 ```Python
 def prune(self, X, y, estimators):
 ```
-
-where 
+of one of the pruning classes, where 
 
 - `X` are the pruning examples, 
 - `y` are the corresponding pruning targets 
@@ -102,17 +87,7 @@ We assume that each estimator in `estimators` has the following functions / fiel
 - `predict_proba(X)`: Returns the class probabilities for each example in X. Result should be `(X.shape[0], n_classes_)` where `n_classes_` is the number of classes the classifier was trained on.
 - `n_classes_`: Each classifier should have a field `n_classes_` which stores the number of classes the classifier was trained on
 
-Moreover, each classifier should support `copy.deepcopy()`. If you want to directly train and prune a classifier you can supply a `base_estimator` in the constructor and call `fit(X,y)` on the pruning classifier. In this case, it is assumed that the `base_estimator` also offers a `fit(X,y)` function:
-
-```Python
-def fit(self, X, y):
-    self.n_classes_ = len(set(y))
-    model = self.base_estimator.fit(X,y)
-    self.prune_(X, model.estimators_)
-
-    return self
-```
-Please note however, that we currently only support scikit-learns `RandomForestClassifier` and `ExtraTreesClassifier` for this mode.
+Moreover, each classifier should support `copy.deepcopy()`. 
 
 
 # Reproducing results from literature
@@ -165,9 +140,8 @@ You can implement your own pruner as a well. In this case you just have to imple
 ```Python
 class RandomPruningClassifier(PruningClassifier):
 
-    def __init__(self, n_estimators = 5, base_estimator = None, n_jobs = 8):
-        
-        super().__init__(n_estimators, base_estimator, n_jobs)
+    def __init__(self):
+        super().__init__()
 
     def prune_(self, proba, target):
         n_received = len(proba)
