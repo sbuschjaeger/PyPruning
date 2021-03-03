@@ -67,7 +67,10 @@ class PruningClassifier(ABC):
             tmp[:, e.classes_.astype(int)] += e.predict_proba(X)
             all_proba.append(tmp)
 
-        return np.array(all_proba)
+        if len(all_proba) == 0:
+            return np.zeros(shape=(1, X.shape[0], self.n_classes_), dtype=np.float32)
+        else:
+            return np.array(all_proba)
 
     def predict_proba(self, X):
         all_proba = self._individual_proba(X)
