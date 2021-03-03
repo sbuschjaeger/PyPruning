@@ -46,6 +46,50 @@ def to_prob_simplex(x):
     return [max(xi + l, 0.0) for xi in x]
 
 class ProxPruningClassifier(PruningClassifier):
+    """
+    The ProxPruningClassifier. This classifier expects a list of classifiers (=ensemble members) and prunes these to find the smallest and most effective ensemble. The list of classifiers is assumed to be objects which offer a `predict_proba(X)` method, where X are the test examples. 
+
+    Each member is assigned a weight and proximal stochastic gradient descent is performed on these weights. To ensure an effective ensemble, a `loss` function is minimized. To ensure small ensembles, two regularizer are used:
+         - `ensemble_regularizer`: This regularizer tries to remove as many members as possible from the ensemble
+         - `tree_regularizer`: This regularizer tries to choose smaller trees with fewer nodes over larger ones
+    Moreover, to further combat overfitting the weights of the ensemble can be constraint to sum to 1 via `normalize_weights`. 
+
+    self.batch_size = batch_size
+    self.epochs = epochs
+    self.verbose = verbose
+    self.out_path = out_path
+    self.eval_every_epochs = eval_every_epochs
+
+    Attributes
+    ----------
+    step_size : float
+        The step_size used for stochastic gradient descent for opt 
+    loss : str
+        The loss function for training. Should be one of {{"mse", "cross-entropy", "hinge2"}}
+    normalize_weights : bool
+        True if nonzero weights should be projected onto the probability simplex, that is they should sum to 1. 
+    ensemble_regularizer : str
+        The ensemble_regularizer. Should be one of {{None, "L0", "L1", "hard-L1"}}
+    l_ensemble_reg : float
+        The ensemble_regularizer regularization strength. 
+    tree_regularizer : str
+        The tree_regularizer. Should be one of {{None,"node"}}
+    l_tree_reg : float
+        The tree_regularizer regularization strength. 
+    batch_size: int
+        The batch sized used for SGD
+    epochs : int
+        The number of epochs SGD is run.
+    verbose : bool
+        If true, shows a progress bar via tqdm and some statistics
+    out_path: str
+        If set, stores a file called epoch_$i.npy with the statistics for epoch $i under the given path.
+    estimators_ : list of objects
+        The list of estimators which are used to built the ensemble. Each estimator must offer a predict_proba method.
+    weights_ : np.array of floats
+        The list of weights corresponding to their respective estimator in self.estimators_. 
+    """
+
     def __init__(self,
         loss = "cross-entropy",
         step_size = 1e-1,

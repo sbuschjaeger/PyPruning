@@ -14,6 +14,7 @@ def error(iproba, jproba, target):
 # Uses the sklearn-implementation
 def neg_auc(iproba, jproba, target):
     if(iproba.shape[1] == 2):
+        iproba = iproba.argmax(axis=1)
         return - 1.0 * roc_auc_score(target, iproba)
     else:
         return - 1.0 * roc_auc_score(target, iproba, multi_class="ovr")
