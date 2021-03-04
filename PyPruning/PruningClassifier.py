@@ -25,7 +25,7 @@ class PruningClassifier(ABC):
     def prune_(self, proba, target, data = None):
         pass
 
-    def prune(self, X, y, estimators):
+    def prune(self, X, y, estimators, data = None):
         if self.n_classes_ is None:
             classes = [e.n_classes_ for e in estimators]
             if (len(set(classes)) > 1):
@@ -41,7 +41,7 @@ class PruningClassifier(ABC):
         proba = np.array(proba)
 
         self.estimators_ = copy.deepcopy(estimators)
-        idx, weights = self.prune_(proba, y)        
+        idx, weights = self.prune_(proba, y, data)        
         estimators_ = []
         for i in idx:
             estimators_.append(self.estimators_[i])
