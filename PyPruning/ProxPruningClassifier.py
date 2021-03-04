@@ -13,7 +13,7 @@ from sklearn.tree import DecisionTreeClassifier
 from .PruningClassifier import PruningClassifier
 
 # Modified from https://stackoverflow.com/questions/38157972/how-to-implement-mini-batch-gradient-descent-in-python
-def create_mini_batches(inputs, targets, batch_size, shuffle=False):
+def create_mini_batches(inputs, targets, data, batch_size, shuffle=False):
     assert inputs.shape[0] == targets.shape[0]
     indices = np.arange(inputs.shape[0])
     if shuffle:
@@ -28,7 +28,7 @@ def create_mini_batches(inputs, targets, batch_size, shuffle=False):
         
         start_idx += batch_size
 
-        yield inputs[excerpt], targets[excerpt]
+        yield inputs[excerpt], targets[excerpt], data[excerpt]
 
 # See https://eng.ucmerced.edu/people/wwang5/papers/SimplexProj.pdf for details
 def to_prob_simplex(x):
@@ -229,7 +229,7 @@ class ProxPruningClassifier(PruningClassifier):
     def num_parameters(self):
         return sum( [ est.tree_.node_count if w != 0 else 0 for w, est in zip(self.weights_, self.estimators_)] )
 
-    def prune_(self, proba, target):
+    def prune_(self, proba, target, data):
         proba = np.swapaxes(proba, 0, 1)
         self.weights_ = np.array([1.0 / proba.shape[1] for _ in range(proba.shape[1])])
 
@@ -243,7 +243,7 @@ class ProxPruningClassifier(PruningClassifier):
 
         for epoch in range(self.epochs):
 
-            mini_batches = create_mini_batches(proba, target, self.batch_size, True) 
+            mini_batches = create_mini_batches(proba, target, data, self.batch_size, True) 
 
             times = []
             total_time = 0
@@ -254,11 +254,11 @@ class ProxPruningClassifier(PruningClassifier):
 
             with tqdm(total=proba.shape[0], ncols=150, disable = not self.verbose) as pbar:
                 for batch in mini_batches:
-                    bproba, btarget = batch 
+                    bproba, btarget, bdata = batch 
 
                     # Update Model                    
                     start_time = time.time()
-                    batch_metrics = self.next(bproba, btarget)
+                    batch_metrics = self.next(bproba, btarget, bdata)
                     batch_time = time.time() - start_time
 
                     # Extract statistics
