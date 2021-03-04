@@ -101,6 +101,7 @@ class ProxPruningClassifier(PruningClassifier):
         batch_size = 256,
         epochs = 1,
         verbose = False, 
+        update_leaves = False,
         out_path = None,
         eval_every_epochs = None):
 
@@ -126,11 +127,17 @@ class ProxPruningClassifier(PruningClassifier):
         self.batch_size = batch_size
         self.epochs = epochs
         self.verbose = verbose
+        self.update_leaves = update_leaves
         self.out_path = out_path
         self.eval_every_epochs = eval_every_epochs
 
-    def next(self, proba, target):
-        proba = np.swapaxes(proba, 0, 1)
+    def next(self, proba, target, data):
+        # If we update the leaves, then proba also changes and we need to recompute them. Otherwise we can just use the pre-computed probas
+        if self.update_leaves:
+            proba = self._individual_proba(data)
+        else:
+            proba = np.swapaxes(proba, 0, 1)
+
         output = np.array([w * p for w,p in zip(proba, self.weights_)]).sum(axis=0)
 
         batch_size = output.shape[0]
@@ -179,6 +186,17 @@ class ProxPruningClassifier(PruningClassifier):
         # Perform the gradient step + projection 
         tmp_w = self.weights_ - self.step_size*directions - self.step_size*node_deriv
         
+        if self.update_leaves:
+            # compute direction per tree
+            tree_deriv = proba*loss_deriv
+            for i, h in enumerate(self.estimators_):
+                # find idx
+                idx = h.apply(data)
+                # update model
+                #h.tree_.value[idx] = h.tree_.value[idx] - self.step_size*h.tree_.value[idx]*tree_deriv[i,:,np.newaxis]
+                step = self.step_size*tree_deriv[i,:,np.newaxis]
+                h.tree_.value[idx] = h.tree_.value[idx] - step[:,:,h.classes_.astype(int)]
+
         if self.ensemble_regularizer == "L0":
             tmp = np.sqrt(2 * self.l_ensemble_reg * self.step_size)
             tmp_w = np.array([0 if abs(w) < tmp else w for w in tmp_w])
@@ -214,6 +232,14 @@ class ProxPruningClassifier(PruningClassifier):
     def prune_(self, proba, target):
         proba = np.swapaxes(proba, 0, 1)
         self.weights_ = np.array([1.0 / proba.shape[1] for _ in range(proba.shape[1])])
+
+        if self.update_leaves:
+            # SKlearn stores the raw counts instead of probabilities. For SGD its better to have the 
+            # probabilities for numerical stability. 
+            # tree.tree_.value is not writeable, but we can modify the values inplace. Thus we 
+            # use [:] to copy the array into the normalized array. Also tree.tree_.value has a strange shape (batch_size, 1, n_classes)
+            for tree in self.estimators_:
+                tree.tree_.value[:] = tree.tree_.value / tree.tree_.value.sum(axis=(1,2))[:,np.newaxis,np.newaxis]
 
         for epoch in range(self.epochs):
 

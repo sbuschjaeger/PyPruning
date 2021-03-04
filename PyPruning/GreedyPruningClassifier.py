@@ -37,7 +37,7 @@ class GreedyPruningClassifier(PruningClassifier):
             print("Warning: You did not provide a pairwise_metric, but set l_reg > 0. This does not make sense. Setting l_reg = 0 for you.")
             self.l_reg = 0
 
-    def prune_(self, proba, target):
+    def prune_(self, proba, target, data = None):
         n_received = len(proba)
         if self.n_estimators >= n_received:
             return range(0, n_received), [1.0 / n_received for _ in range(n_received)]

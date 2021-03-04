@@ -10,7 +10,7 @@ class RandomPruningClassifier(PruningClassifier):
         super().__init__()
         self.n_estimators = n_estimators
 
-    def prune_(self, proba, target):
+    def prune_(self, proba, target, data = None):
         n_received = len(proba)
         if self.n_estimators >= n_received:
             return range(0, n_received), [1.0 / n_received for _ in range(n_received)]

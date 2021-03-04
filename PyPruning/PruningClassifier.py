@@ -22,7 +22,7 @@ class PruningClassifier(ABC):
         #assert n_jobs >= 1, "n_jobs must be at-least 1"
 
     @abstractmethod
-    def prune_(self, proba, target):
+    def prune_(self, proba, target, data = None):
         pass
 
     def prune(self, X, y, estimators):
