@@ -2,64 +2,22 @@ import numpy as np
 from sklearn import metrics
 from sklearn.metrics import roc_auc_score, cohen_kappa_score
 
-# accuracy for ensemble pruning
-# Uses the sklearn-implementation
-# def accuracy(iproba, jproba, target):
-#     return - 1.0 * accuracy_score(target, iproba.argmax(axis=1))
-
-def error(iproba, jproba, target):
-    return (iproba.argmax(axis=1) != target).mean()
-
-# Area under the ROC-Curve (AUC) metric for ensemble pruning
-# Uses the sklearn-implementation
-def neg_auc(iproba, jproba, target):
-    if(iproba.shape[1] == 2):
-        iproba = iproba.argmax(axis=1)
-        return - 1.0 * roc_auc_score(target, iproba)
-    else:
-        return - 1.0 * roc_auc_score(target, iproba, multi_class="ovr")
-
-# Paper:   Ensemble Pruning via individual contribution
-# Authors: Lu et al. 2010
-#
-def individual_contribution(iproba, jproba, target):
-    IC = 0
-    #V = all_proba.argmax(axis=2)
-    #predictions = iproba.argmax(axis=1)
-    #V = all_proba.sum(axis=0)#.argmax(axis=1)
-    V = jproba
-    predictions = iproba.argmax(axis=1)
-
-    for j in range(len(predictions)):
-        if (predictions[j] == target[j]):
-            
-            # case 1 (minority group)
-            # label with majority votes on datapoint  = np.argmax(V[j, :]) 
-            if(predictions[j] != np.argmax(V[j,:])):
-                IC = IC + (2*(np.max(V[j,:])) - V[j, predictions[j]])
-                
-            else: # case 2 (majority group)
-                # calculate second largest nr of votes on datapoint i
-                sortedArray = np.sort(np.copy(V[j,:]))
-                IC = IC + (sortedArray[-2])
-                
-        else:
-            # case 3 (wrong prediction)
-            IC = IC + (V[j, target[j]]  -  V[j, predictions[j]] - np.max(V[j,:]) )
-    return IC
-
 # Paper:   Margin & Diversity based ordering ensemble pruning
 # Authors: Guo et al. 2018
 #
-def margin_diversity(iproba, jproba, target, alpha = 0.2):
+def margin_diversity(iproba, ensemble_proba, target, alpha = 0.2):
+    n = iproba.shape[0]
+
     predictions = iproba.argmax(axis=1)
-    V = jproba #all_proba.sum(axis=0)#.argmax(axis=1)
+    V = np.zeros(ensemble_proba.shape)
+    idx = ensemble_proba.argmax(axis=2)
+    V[np.arange(ensemble_proba.shape[0])[:,None],np.arange(ensemble_proba.shape[1]),idx] = 1
+    V = V.sum(axis=0)
+
+    #V = jproba #all_proba.sum(axis=0)#.argmax(axis=1)
     MDM = 0
-    #V = all_proba.argmax(axis=1)
-    #predictions = iproba.argmax(axis=1)
-    n = len(jproba)
     
-    for j in range(len(predictions)):
+    for j in range(n):
         if (predictions[j] == target[j]):
             
             # special case for margin: prediction for label with majority of votes
@@ -86,6 +44,58 @@ def margin_diversity(iproba, jproba, target, alpha = 0.2):
             fd = np.log(V[j, target[j]] / n)
             MDM = MDM + (alpha*fm) + ((1-alpha)*fd)
     return - 1.0 * MDM
+
+# Paper:   Ensemble Pruning via individual contribution
+# Authors: Lu et al. 2010
+#
+def individual_contribution(iproba, ensemble_proba, target):
+    n = iproba.shape[0]
+
+    predictions = iproba.argmax(axis=1)
+    V = np.zeros(ensemble_proba.shape)
+    idx = ensemble_proba.argmax(axis=2)
+    V[np.arange(ensemble_proba.shape[0])[:,None],np.arange(ensemble_proba.shape[1]),idx] = 1
+    V = V.sum(axis=0)
+
+    IC = 0
+    #V = all_proba.argmax(axis=2)
+    #predictions = iproba.argmax(axis=1)
+    #V = all_proba.sum(axis=0)#.argmax(axis=1)
+
+    for j in range(n):
+        if (predictions[j] == target[j]):
+            
+            # case 1 (minority group)
+            # label with majority votes on datapoint  = np.argmax(V[j, :]) 
+            if(predictions[j] != np.argmax(V[j,:])):
+                IC = IC + (2*(np.max(V[j,:])) - V[j, predictions[j]])
+                
+            else: # case 2 (majority group)
+                # calculate second largest nr of votes on datapoint i
+                sortedArray = np.sort(np.copy(V[j,:]))
+                IC = IC + (sortedArray[-2])
+                
+        else:
+            # case 3 (wrong prediction)
+            IC = IC + (V[j, target[j]]  -  V[j, predictions[j]] - np.max(V[j,:]) )
+    return - 1.0 * IC
+
+# accuracy for ensemble pruning
+# Uses the sklearn-implementation
+# def accuracy(iproba, jproba, target):
+#     return - 1.0 * accuracy_score(target, iproba.argmax(axis=1))
+
+def error(iproba, ensemble_proba, target):
+    return (iproba.argmax(axis=1) != target).mean()
+
+# Area under the ROC-Curve (AUC) metric for ensemble pruning
+# Uses the sklearn-implementation
+def neg_auc(iproba, ensemble_proba, target):
+    if(iproba.shape[1] == 2):
+        iproba = iproba.argmax(axis=1)
+        return - 1.0 * roc_auc_score(target, iproba)
+    else:
+        return - 1.0 * roc_auc_score(target, iproba, multi_class="ovr")
 
 
 # Paper  : Pruning adaptive boosting

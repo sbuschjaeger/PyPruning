@@ -12,8 +12,8 @@ from sklearn.datasets import load_digits
 
 from PyPruning.Metrics import error, neg_auc, individual_contribution, margin_diversity, kappa_statistic, combined, disagreement, q_zhang06
 
-from PyPruning.GreedyPruningClassifier import GreedyPruningClassifier
-from PyPruning.MIQPPruningClassifier import MIQPPruningClassifier
+from PyPruning.RankPruningClassifier import RankPruningClassifier
+#from PyPruning.MIQPPruningClassifier import MIQPPruningClassifier
 from PyPruning.RandomPruningClassifier import RandomPruningClassifier
 from PyPruning.ProxPruningClassifier import ProxPruningClassifier
 
@@ -38,13 +38,13 @@ pred = model.predict(Xtest)
 
 print("Accuracy of RF trained on XTrain only with {} estimators: {} %".format(n_base, 100.0 * accuracy_score(ytest, pred)))
 
-for p in [ "margineantu1997", "lazarevic2001", "lu2010", "guo2018", "cavalcanti2016", "zhang2006"]:
-    pruned_model = create_pruner("Greedy", p, n_estimators = n_prune)
+for p in [ "guo2018", "lu2010", "error", "neg_auc"]:
+    pruned_model = create_pruner(p, n_estimators = n_prune)
     pruned_model.prune(Xprune, yprune, model.estimators_)
     pred = pruned_model.predict(Xtest)
     print("Accuracy of {} via Greedy with {} estimators: {} %".format(p, n_prune, 100.0 * accuracy_score(ytest, pred)))
 
-    # pruned_model = create_pruner("MIQP", p, n_estimators = n_prune)
+    # pruned_model = create_pruner(p, n_estimators = n_prune)
     # pruned_model.prune(Xtrain, ytrain, model.estimators_)
     # pred = pruned_model.predict(Xtest)
     # print("Accuracy of {} via MIQP with {} estimators: {} %".format(p, n_prune, 100.0 * accuracy_score(ytest, pred)))
