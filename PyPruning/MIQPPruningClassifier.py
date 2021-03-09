@@ -155,12 +155,15 @@ class MIQPPruningClassifier(PruningClassifier):
         single_metric = None,
         pairwise_metric = combined_error, 
         alpha = 1,
+        eps = 1e-5,
         verbose = False,
         n_jobs = 8):
         
         super().__init__()
         
         assert 0 <= alpha <= 1, "l_reg should be from [0,1], but you supplied {}".format(alpha)
+        assert eps >= 0, "Eps should be >= 0, but you supplied".format(eps)
+
         assert pairwise_metric is not None or single_metric is not None, "You did not provide a single_metric or pairwise_metric. Please provide at-least one of them"
 
         if single_metric is None and alpha < 1:
@@ -177,6 +180,7 @@ class MIQPPruningClassifier(PruningClassifier):
         self.pairwise_metric = pairwise_metric
         self.alpha = alpha
         self.verbose = verbose
+        self.eps = eps
 
     def prune_(self, proba, target, data = None):
         n_received = len(proba)
@@ -207,6 +211,8 @@ class MIQPPruningClassifier(PruningClassifier):
                         P[i,j] = pairwise_scores[s]
                         P[j,i] = pairwise_scores[s]
                     s += 1
+            P += self.eps * np.eye((n_received,n_received))
+
         else:
             P = np.zeros((n_received,n_received))
 
@@ -217,7 +223,7 @@ class MIQPPruningClassifier(PruningClassifier):
         elif self.alpha == 0:
             objective = q.T @ w
         else:
-            objective = (1.0 - self.alpha) * q.T @ w + cp.quad_form(w, self.alpha * P) 
+            objective = cp.pos((1.0 - self.alpha)) * q.T @ w + cp.pos(self.alpha) * cp.quad_form(w, P)
 
         prob = cp.Problem(cp.Minimize(objective), [
             atoms.affine.sum.sum(w) == self.n_estimators,
