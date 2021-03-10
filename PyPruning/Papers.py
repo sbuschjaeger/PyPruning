@@ -30,7 +30,7 @@ def create_pruner(method = "reduced_error", **kwargs):
     elif method == "combined":
         return MIQPPruningClassifier(single_metric=None, pairwise_metric=combined, alpha = 1.0)
     elif method == "combined_error":
-        return MIQPPruningClassifier(single_metric=None, pairwise_metric=combined_error, alpha = 1)
+        return MIQPPruningClassifier(single_metric=None, pairwise_metric=combined_error, alpha = 1.0)
     # elif method == "disagreement":
     #     return MIQPPruningClassifier(single_metric=None, pairwise_metric=disagreement, alpha = 1.0)
 

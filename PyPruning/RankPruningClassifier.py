@@ -11,7 +11,7 @@ from .PruningClassifier import PruningClassifier
 # Authors: Guo et al. 2018
 #
 def individual_margin_diversity(i, ensemble_proba, target, alpha = 0.2):
-    iproba = ensemble_proba[i,:]
+    iproba = ensemble_proba[i,:,:]
     n = iproba.shape[0]
 
     predictions = iproba.argmax(axis=1)
@@ -55,7 +55,7 @@ def individual_margin_diversity(i, ensemble_proba, target, alpha = 0.2):
 # Authors: Lu et al. 2010
 #
 def individual_contribution(i, ensemble_proba, target):
-    iproba = ensemble_proba[i,:]
+    iproba = ensemble_proba[i,:,:]
     n = iproba.shape[0]
 
     predictions = iproba.argmax(axis=1)
@@ -88,13 +88,13 @@ def individual_contribution(i, ensemble_proba, target):
     return - 1.0 * IC
 
 def individual_error(i, ensemble_proba, target):
-    iproba = ensemble_proba[i,:]
+    iproba = ensemble_proba[i,:,:]
     return (iproba.argmax(axis=1) != target).mean()
 
 # Area under the ROC-Curve (AUC) metric for ensemble pruning
 # Uses the sklearn-implementation
 def individual_neg_auc(i, ensemble_proba, target):
-    iproba = ensemble_proba[i,:]
+    iproba = ensemble_proba[i,:,:]
     if(iproba.shape[1] == 2):
         iproba = iproba.argmax(axis=1)
         return - 1.0 * roc_auc_score(target, iproba)
@@ -105,11 +105,18 @@ def individual_neg_auc(i, ensemble_proba, target):
 # Authors: Margineantu and Dietterich 
 def individual_kappa_statistic(i, ensemble_proba, target):
     scores = []
-    iproba = ensemble_proba[i,:].argmax(axis=1)
+    iproba = ensemble_proba[i,:,:].argmax(axis=1)
 
     for j, jproba in enumerate(ensemble_proba):
         if j != i:
-            scores.append( cohen_kappa_score(iproba, jproba.argmax(axis=1)) )
+            # See https://github.com/scikit-learn/scikit-learn/issues/14256
+            # and https://stackoverflow.com/questions/14861891/runtimewarning-invalid-value-encountered-in-divide
+            with np.errstate(divide='ignore',invalid='ignore'):
+                score = cohen_kappa_score(iproba, jproba.argmax(axis=1))
+                if np.isnan(score):
+                    scores.append(0.0)
+                else:
+                    scores.append(score)
     return min(scores)
 
 # Paper:   Pruning in Ordered Bagging Ensembles

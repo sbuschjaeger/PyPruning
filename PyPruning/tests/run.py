@@ -34,8 +34,8 @@ pred = model.predict(Xtest)
 
 print("Accuracy of RF trained on XTrain only with {} estimators: {} %".format(n_base, 100.0 * accuracy_score(ytest, pred)))
 
-# "individual_margin_diversity", "individual_contribution", "individual_error", "individual_kappa_statistic", "reduced_error", "complementariness", "margin_distance", "combined", "drep", "reduced_error", 
-for p in [ "combined_error"]:
+# "individual_margin_diversity", "individual_contribution", "individual_error", "individual_kappa_statistic", "reduced_error", "complementariness", "margin_distance", "combined", "drep", "reduced_error", "combined_error"
+for p in [ "individual_margin_diversity", "individual_contribution", "individual_error", "individual_kappa_statistic", "reduced_error", "complementariness", "margin_distance", "combined", "drep", "reduced_error", "individual_kappa_statistic"]: #"combined_error"
     pruned_model = create_pruner(p, n_estimators = n_prune)
     pruned_model.prune(Xprune, yprune, model.estimators_)
     pred = pruned_model.predict(Xtest)

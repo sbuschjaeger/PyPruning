@@ -108,6 +108,7 @@ def combined(i, j, ensemble_proba, target, weights = [1.0 / 5.0 for _ in range(5
 # Paper  : Ensemble Pruning Via Semi-definite Programming 
 # Authors: Zhang et al 2006 
 #
+# TODO CHECK THIS. IT IS NOT CONVEX???
 def combined_error(i, j, ensemble_proba, target):
     iproba = ensemble_proba[i,:,:].argmax(axis=1)
     jproba = ensemble_proba[j,:,:].argmax(axis=1)
@@ -155,7 +156,7 @@ class MIQPPruningClassifier(PruningClassifier):
         single_metric = None,
         pairwise_metric = combined_error, 
         alpha = 1,
-        eps = 1e-5,
+        eps = 1e-2,
         verbose = False,
         n_jobs = 8):
         
@@ -211,7 +212,7 @@ class MIQPPruningClassifier(PruningClassifier):
                         P[i,j] = pairwise_scores[s]
                         P[j,i] = pairwise_scores[s]
                     s += 1
-            P += self.eps * np.eye((n_received,n_received))
+            P += self.eps * np.eye(n_received)
 
         else:
             P = np.zeros((n_received,n_received))
