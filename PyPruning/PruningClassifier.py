@@ -34,11 +34,16 @@ class PruningClassifier(ABC):
             else:
                 self.n_classes_ = classes[0]
 
-        # TODO parallelize this
-        proba = []
-        for h in estimators:
-            proba.append(h.predict_proba(X))
-        proba = np.array(proba)
+        # Okay this is a bit crazy, but has its reasons. This basically implements the code snippet below, but also takes care of the case where a single estimator did not receive all the labels. In this case predict_proba returns vectors with less than n_classes entries. This can happen in ExtraTrees, but also in RF, especially with unfavourable cross validation splits or large class imbalances. 
+        # Anyway, this code construct the desired matrix and copies all predictions to the corresponding locations based on e.classes_. This **should** be correct for numeric classes staring by 0 and also anything which is mapped via the SKLearns LabelEncoder.  
+        proba = np.zeros(shape=(len(estimators), X.shape[0], self.n_classes_), dtype=np.float32)
+        for i, e in enumerate(estimators):
+            proba[i, :, e.classes_.astype(int)] = e.predict_proba(X).T
+            
+        # proba = []
+        # for h in estimators:
+        #     proba.append(h.predict_proba(X))
+        # proba = np.array(proba)
 
         self.estimators_ = copy.deepcopy(estimators)
         idx, weights = self.prune_(proba, y, X)        
