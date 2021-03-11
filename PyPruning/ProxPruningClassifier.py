@@ -195,7 +195,7 @@ class ProxPruningClassifier(PruningClassifier):
                 # update model
                 #h.tree_.value[idx] = h.tree_.value[idx] - self.step_size*h.tree_.value[idx]*tree_deriv[i,:,np.newaxis]
                 step = self.step_size*tree_deriv[i,:,np.newaxis]
-                h.tree_.value[idx] = h.tree_.value[idx] - step[:,:,h.classes_.astype(int)]
+                h.tree_.value[idx] = h.tree_.value[idx] - step[:,:,self.classes_.astype(int)]
 
         if self.ensemble_regularizer == "L0":
             tmp = np.sqrt(2 * self.l_ensemble_reg * self.step_size)

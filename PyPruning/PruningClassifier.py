@@ -24,21 +24,36 @@ class PruningClassifier(ABC):
     @abstractmethod
     def prune_(self, proba, target, data = None):
         pass
-
-    def prune(self, X, y, estimators):
-        if self.n_classes_ is None:
+    
+    def prune(self, X, y, estimators, classes = None, n_classes = None):
+        """
+        classes: Contains the class mappings of each base learner in the order which is returned. Usually this should be something like
+            [0,1,2,3,4] for a 5 class problem. However, sometimes weird stuff happens and the mapping might be [2,1,0,3,4]. 
+            In this case, you can manually supply the list of mappings
+        n_classes: The total number of classes. Usually, this it should be n_classes = len(classes). However, sometimes estimators are only fitted on 
+            a subset of data (e.g. during cross validation) and the prune set might contain classes which are not in the oirignal training set and 
+            vice-versa. In this case its best to supply n_classes beforehand. 
+        """
+        if classes is None:
             classes = [e.n_classes_ for e in estimators]
             if (len(set(classes)) > 1):
-                print("WARNING: Detected a different number of classes for each learner")
-                self.n_classes_ = max(classes)
+                raise RuntimeError("Detected a different number of classes for each learner. Please make sure that all learners have their n_classes_ field set to the same value. Alternativley, you may supply a list of classes via the classes parameter to avoid this error.")
+                #self.n_classes_ = max(classes)
             else:
+                self.classes_ = estimators[0].classes_
                 self.n_classes_ = classes[0]
+            
+            if len(set(y)) > self.n_classes_:
+                raise RuntimeError("Detected more classes in the pruning set then the estimators were originally trained on. This usually results in errors or unpredicted classification errors. You can supply a list of classes via the classes parameter. Classes should be arrays / lists containing all possible class labels starting from 0 to C, where C is the number of classes. Please make sure that these are integers as they will be interpreted as such.")
+        else:
+            self.classes_ = classes
+            self.n_classes_ = n_classes
 
         # Okay this is a bit crazy, but has its reasons. This basically implements the code snippet below, but also takes care of the case where a single estimator did not receive all the labels. In this case predict_proba returns vectors with less than n_classes entries. This can happen in ExtraTrees, but also in RF, especially with unfavourable cross validation splits or large class imbalances. 
         # Anyway, this code construct the desired matrix and copies all predictions to the corresponding locations based on e.classes_. This **should** be correct for numeric classes staring by 0 and also anything which is mapped via the SKLearns LabelEncoder.  
         proba = np.zeros(shape=(len(estimators), X.shape[0], self.n_classes_), dtype=np.float32)
         for i, e in enumerate(estimators):
-            proba[i, :, e.classes_.astype(int)] = e.predict_proba(X).T
+            proba[i, :, self.classes_.astype(int)] = e.predict_proba(X).T
             
         # proba = []
         # for h in estimators:
@@ -69,7 +84,7 @@ class PruningClassifier(ABC):
 
         for e in self.estimators_:
             tmp = np.zeros(shape=(X.shape[0], self.n_classes_), dtype=np.float32)
-            tmp[:, e.classes_.astype(int)] += e.predict_proba(X)
+            tmp[:, self.classes_.astype(int)] += e.predict_proba(X)
             all_proba.append(tmp)
 
         if len(all_proba) == 0:
