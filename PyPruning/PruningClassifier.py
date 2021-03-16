@@ -54,6 +54,7 @@ class PruningClassifier(ABC):
         proba = np.zeros(shape=(len(estimators), X.shape[0], self.n_classes_), dtype=np.float32)
         for i, e in enumerate(estimators):
             proba[i, :, self.classes_.astype(int)] = e.predict_proba(X).T
+
             
         # proba = []
         # for h in estimators:
@@ -100,4 +101,4 @@ class PruningClassifier(ABC):
 
     def predict(self, X):
         proba = self.predict_proba(X)
-        return proba.argmax(axis=1)
+        return self.classes_.take(proba.argmax(axis=1), axis=0)

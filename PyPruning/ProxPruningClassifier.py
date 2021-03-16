@@ -188,14 +188,17 @@ class ProxPruningClassifier(PruningClassifier):
         
         if self.update_leaves:
             # compute direction per tree
-            tree_deriv = proba*loss_deriv
+            # tree_deriv = proba*loss_deriv
             for i, h in enumerate(self.estimators_):
+                tree_grad = (self.weights_[i] * loss_deriv)[:,np.newaxis,:]
                 # find idx
                 idx = h.apply(data)
+                h.tree_.value[idx] = h.tree_.value[idx] - self.step_size * tree_grad[:,:,h.classes_.astype(int)]
                 # update model
                 #h.tree_.value[idx] = h.tree_.value[idx] - self.step_size*h.tree_.value[idx]*tree_deriv[i,:,np.newaxis]
-                step = self.step_size*tree_deriv[i,:,np.newaxis]
-                h.tree_.value[idx] = h.tree_.value[idx] - step[:,:,self.classes_.astype(int)]
+                
+                #step = self.step_size*tree_deriv[i,:,np.newaxis]
+                #h.tree_.value[idx] = h.tree_.value[idx] - step[:,:,self.classes_.astype(int)]
 
         if self.ensemble_regularizer == "L0":
             tmp = np.sqrt(2 * self.l_ensemble_reg * self.step_size)
@@ -211,6 +214,7 @@ class ProxPruningClassifier(PruningClassifier):
         # If set, normalize the weights. Note that we use the support of tmp_w for the projection onto the probability simplex
         # as described in http://proceedings.mlr.press/v28/kyrillidis13.pdf
         # Thus, we first need to extract the nonzero weights, project these and then copy them back into corresponding array
+        
         if self.normalize_weights and len(tmp_w) > 0:
             nonzero_idx = np.nonzero(tmp_w)[0]
             nonzero_w = tmp_w[nonzero_idx]

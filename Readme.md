@@ -80,12 +80,13 @@ of one of the pruning classes, where
 - `X` are the pruning examples, 
 - `y` are the corresponding pruning targets 
 - `estimators` is the list of estimators to be pruned. 
+- `classes` a list of classes this classifier was trained on which corresponding to the order of `predict_proba`. If this is `None` we try to infer this from the base estimators
+- `n_classes` the total number of classes. If this is `None` we try to infer this from the base estimators
 
 We assume that each estimator in `estimators` has the following functions / fields: 
 
 - `predict(X)`: Returns the class predictions for each example in X. Result should be `(X.shape[0], )`
 - `predict_proba(X)`: Returns the class probabilities for each example in X. Result should be `(X.shape[0], n_classes_)` where `n_classes_` is the number of classes the classifier was trained on.
-- `n_classes_`: Each classifier should have a field `n_classes_` which stores the number of classes the classifier was trained on
 
 Moreover, each classifier should support `copy.deepcopy()`. 
 
