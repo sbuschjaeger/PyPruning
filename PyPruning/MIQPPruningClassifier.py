@@ -9,10 +9,17 @@ from .PruningClassifier import PruningClassifier
 
 from .RankPruningClassifier import *
 
-# Paper  : Combining diversity measures for ensemble pruning
-# Authors: Cavalcanti et al. 2016
-#
 def combined(i, j, ensemble_proba, target, weights = [1.0 / 5.0 for _ in range(5)]):
+    '''
+    Computes a (weighted) combination of 5 differents measures for a pair of classifiers. The original paper also optimizes the weights of this combination using an evolutionary approach and cross-validation. Per default, we use equal weights here. If you want to change this value you can use `partial` to set the weights to different values (e.g. [0.1, 0.1, 0.1, 0.5, 0.2]) before creating a new MIQPPruningClassifier:
+
+        from functools import partial
+        m_function = partial(combined, weights = [0.1, 0.1, 0.1, 0.5, 0.2])
+        pruner = MIQPPruningClassifier(n_estimators = 10, pairwise_metric = m_function, n_jobs = 8)
+
+    Reference:
+        Cavalcanti, G. D. C., Oliveira, L. S., Moura, T. J. M., & Carvalho, G. V. (2016). Combining diversity measures for ensemble pruning. Pattern Recognition Letters, 74, 38–45. https://doi.org/10.1016/j.patrec.2016.01.029
+    '''
     ipred = ensemble_proba[i,:,:].argmax(axis=1)
     jpred = ensemble_proba[j,:,:].argmax(axis=1)
 
@@ -105,11 +112,13 @@ def combined(i, j, ensemble_proba, target, weights = [1.0 / 5.0 for _ in range(5
 #     # equally weighted (no further explanations)
 #     return (kappa + correlation) / 2
 
-# Paper  : Ensemble Pruning Via Semi-definite Programming 
-# Authors: Zhang et al 2006 
-#
-# TODO CHECK THIS. IT IS NOT CONVEX???
 def combined_error(i, j, ensemble_proba, target):
+    '''
+    Computes the pairwise errors of the two classifiers i and j.
+
+    Reference:
+        Zhang, Y., Burer, S., & Street, W. N. (2006). Ensemble Pruning Via Semi-definite Programming. Journal of Machine Learning Research, 7, 1315–1338. https://doi.org/10.1016/j.jasms.2006.06.007
+    '''
     iproba = ensemble_proba[i,:,:].argmax(axis=1)
     jproba = ensemble_proba[j,:,:].argmax(axis=1)
 
@@ -150,6 +159,41 @@ def combined_error(i, j, ensemble_proba, target):
     # return ( (count_h1h2 / count_h1 ) + (count_h1h2 / count_h2) ) / 2.0
 
 class MIQPPruningClassifier(PruningClassifier):
+    ''' Mixed Integer Quadratic Programming (MIQP) Pruning.
+
+    This pruning method constructs a MIQP so that its solution is the pruned ensemble. Formally, it uses the problem
+        
+        min_w (1 - alpha ) q w + alpha * w P w
+
+    where alpha \in [0,1] is the trade-off between the first and the second term. The first vector q contains the individual metrics for each classifier similar to what a RankPruningClassifier would compute, whereas P contains pairwise metrics for each classifier pair in the ensemble. To compute q and P there are two metrics required:
+
+        single_metric: This metric assigns a value to each individual classifier in the ensemble without considering pairs of classifier. A single_metric function should accept the following parameters:
+            - `i` (int): The classifier which should be rated
+            - `ensemble_proba` (A (M, N, C) matrix ): All N predictions of all M classifier in the entire ensemble for all C classes
+            - `target` (list / array): A list / array of class targets.
+        The single_metric is compatible with the metrics for a RankPruningClassifier. You can use any metric from the RankPruningClassifier here and vice-versa
+
+        pairwise_metric: This metric assigns a value to each pair of classifiers in the ensemble. A pairwise_metric function should accept the following parameters:
+            - `i` (int): The first classifier in the pair
+            - `j` (int): The second classifier in the pair 
+            - `ensemble_proba` (A (M, N, C) matrix ): All N predictions of all M classifier in the entire ensemble for all C classes
+            - `target` (list / array): A list / array of class targets.
+    
+    If you set alpha = 0 or choose the pairwise metric that simply returns 0 a MIQPPruningClassifier should produce the same solution as a RankPruningClassifier does.
+
+    **Important:** All metrics are _minimized_. If you implement your own metric make sure that it assigns smaller values to better classifiers.
+    
+    Note: This code uses `cvxpy` to access a wide variety of MQIP solver. For more information on how to configure your solver and interpret its output in case of failures please have a look at the cvxpy documentation https://www.cvxpy.org/tutorial/advanced/index.html#solve-method-options.
+
+    Attributes:
+        - n_estimators (int, default is 5): The number of estimators which should be selected.
+        - single_metric (function, default is None): A function that assigns a value to each classifier which forms the q vector
+        - pairwise_metric (function, default is combined_error): A function that assigns a value to each pair of classifiers which forms the P matrix
+        - alpha (float, should be form [0,1]): The trade-off between the single and pairwise metric. alpha = 0 only considers the single_metric, whereas alpha = 1 only considers the pairwise metric 
+        - eps (float, default 1e-2): Sometimes and especially for larger P matrices there can be numerical inaccuries. In this case, the resulting problem might become non-convex so that the MQIP solver cannot solve the problem anymore. For a better numerical stability the eps value can be added to the diagonal of the P matrix. 
+        - verbose (true/false, default is false): If true, more information from the MQIP solver is printed. 
+        - n_jobs (int, default is 8): The number of threads used for computing the metrics. This does not have any effect on the number of threads used by the MQIP solver.
+    '''
 
     def __init__(self, 
         n_estimators = 5, 

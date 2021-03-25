@@ -46,19 +46,16 @@ def to_prob_simplex(x):
     return [max(xi + l, 0.0) for xi in x]
 
 class ProxPruningClassifier(PruningClassifier):
-    """
-    The ProxPruningClassifier. This classifier expects a list of classifiers (=ensemble members) and prunes these to find the smallest and most effective ensemble. The list of classifiers is assumed to be objects which offer a `predict_proba(X)` method, where X are the test examples. 
+    """ (Heterogenous) Pruning via Proximal Gradient Descent
+    
+    This pruning method directly minimizes
 
-    Each member is assigned a weight and proximal stochastic gradient descent is performed on these weights. To ensure an effective ensemble, a `loss` function is minimized. To ensure small ensembles, two regularizer are used:
-         - `ensemble_regularizer`: This regularizer tries to remove as many members as possible from the ensemble
-         - `tree_regularizer`: This regularizer tries to choose smaller trees with fewer nodes over larger ones
-    Moreover, to further combat overfitting the weights of the ensemble can be constraint to sum to 1 via `normalize_weights`. 
+        min_w L(\sum_{i=1}^M w_i h_i(x), y) + \lambda \sum_{i=1}^K w_i R(h_i) 
 
-    self.batch_size = batch_size
-    self.epochs = epochs
-    self.verbose = verbose
-    self.out_path = out_path
-    self.eval_every_epochs = eval_every_epochs
+    via (stochastic) proximal gradient descent. Currently the means-squared eror, the cross-entropy loss and the squared hinge loss are supported. In addition to the loss functions two types of regularizer can be chosen:
+
+         - `ensemble_regularizer`: This regularizer tries to remove as many members as possible from the ensemble as possible. If you want to select exactly K elements you can choose the `hard-L0` constraint. Otherwise "soft variations" of this in the form of L0 and L1 regularization are also available.
+         - `tree_regularizer`: This regularizer tries to choose smaller trees with fewer nodes over larger ones. This regularizer is basically the number of nodes present in a tree.
 
     Attributes
     ----------
@@ -251,9 +248,7 @@ class ProxPruningClassifier(PruningClassifier):
 
             times = []
             total_time = 0
-            
             metrics = {}
-
             example_cnt = 0
 
             with tqdm(total=proba.shape[0], ncols=150, disable = not self.verbose) as pbar:
