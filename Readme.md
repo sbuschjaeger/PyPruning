@@ -1,6 +1,6 @@
 # PyPruning
 
-Ensemble Algorithms implemented in Python. You can install this package via pip
+Ensemble pruning algorithms implemented in Python. You can install this package via pip
 
     pip install git+https://github.com/sbuschjaeger/PyPruning.git
 
@@ -11,7 +11,7 @@ This package provides implementations for some common ensemble pruning algorithm
 - `MIQPPruningClassifier`: Constructs a mixed-integer quadratic problem and optimizes this to compute the best sub ensemble. This usually yields a slightly better overall performance, but can have a much higher runtime for larger ensembles. Additionally, for larger ensembles numerical instabilities sometimes trouble the solver which then  might not find a valid solution.
 - `ProxPruningClassifier`: This pruning method performs proximal gradient descent on the ensembles weights. It is much faster compared to `MIQPPruningClassifier` with similar results. We have shown that this method statistically beats the other methods. In addition, this method allows you to regularize the selected ensemble to e.g. focus on smaller trees. 
 
-For details on each method please have a look at the documentation. 
+For details on each method please have a look at the [documentation](https://sbuschjaeger.github.io/PyPruning/). 
 
 # Some notes on the MIQPPruningClassifier 
 
@@ -152,4 +152,5 @@ For more details check out the abstract class `PruningClassifier`
 # Acknowledgements 
 
 The software is written and maintained by [Sebastian Buschjäger](https://sbuschjaeger.github.io/) as part of his work at the [Chair for Artificial Intelligence](https://www-ai.cs.tu-dortmund.de) at the TU Dortmund University and the [Collaborative Research Center 876](https://sfb876.tu-dortmund.de). If you have any question feel free to contact me under sebastian.buschjaeger@tu-dortmund.de 
+
 Special thanks goes to Henri Petuker (henri.petuker@tu-dortmund.de) who implemented the initial version of many of these algorithms during his bachelor thesis.
