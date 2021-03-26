@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>PyPruning API documentation</title>
+<meta name="description" content="PyPruning
+…" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Package <code>PyPruning</code></h1>
+</header>
+<section id="section-intro">
+<h2 id="pypruning">Pypruning</h2>
+<p><img alt="" src="../../images/ls8.png"></p>
+<p>Ensemble Algorithms implemented in Python. You can install this package via pip</p>
+<pre><code>pip install git+&lt;https://github.com/sbuschjaeger/PyPruning.git&gt;
+</code></pre>
+<p>This package provides implementations for some common ensemble pruning algorithms. Pruning algorithms aim to select the best subset of an trained ensemble to minimize memory consumption and maximize accuracy. Currently, four types of pruning algorithms are implemented:</p>
+<ul>
+<li><code><a title="PyPruning.RandomPruningClassifier" href="RandomPruningClassifier.html">PyPruning.RandomPruningClassifier</a></code>: Selects a random subset of classifiers. This is mainly used as a reference.</li>
+<li><code><a title="PyPruning.GreedyPruningClassifier" href="GreedyPruningClassifier.html">PyPruning.GreedyPruningClassifier</a></code>: Proceeds in rounds and selects the best classifier in each round given the already selected sub-ensemble. These methods usually yield good results in a decent runtime.</li>
+<li><code><a title="PyPruning.MIQPPruningClassifier" href="MIQPPruningClassifier.html">PyPruning.MIQPPruningClassifier</a></code>: Constructs a mixed-integer quadratic problem and optimizes this to compute the best sub ensemble. This usually yields a slightly better overall performance, but can have a much higher runtime for larger ensembles. Additionally, for larger ensembles numerical instabilities sometimes trouble the solver which then
+might not find a valid solution.</li>
+<li><code><a title="PyPruning.ProxPruningClassifier" href="ProxPruningClassifier.html">PyPruning.ProxPruningClassifier</a></code>: This pruning method performs proximal gradient descent on the ensembles weights. It is much faster compared to <code><a title="PyPruning.MIQPPruningClassifier" href="MIQPPruningClassifier.html">PyPruning.MIQPPruningClassifier</a></code> with similar results. We have shown that this method statistically beats the other methods. In addition, this method allows you to regularize the selected ensemble to e.g. focus on smaller trees. </li>
+</ul>
+<p>For details on each method please have a look at the documentation. If you have trouble with dependencies you can try setting up a conda environment which I use for development:</p>
+<pre><code>conda env create -f environment.yml
+conda activate pypruning
+</code></pre>
+<h3 id="some-notes-on-the-miqppruningclassifier">Some notes on the MIQPPruningClassifier</h3>
+<p>For implementing the <code><a title="PyPruning.MIQPPruningClassifier" href="MIQPPruningClassifier.html">PyPruning.MIQPPruningClassifier</a></code> we use <code>cvxpy</code> which does <em>not</em> come with a MIQP solver. If you want to use this algorithm you have to manually install a solver, e.g.</p>
+<pre><code>pip install cvopt
+</code></pre>
+<p>for a free solver or if you want to use a commercial solver and use Anaconda you can also install gurobi (with a free license)</p>
+<pre><code>conda install -c gurobi gurobi
+</code></pre>
+<p>For more information on setting the solver for <code><a title="PyPruning.MIQPPruningClassifier" href="MIQPPruningClassifier.html">PyPruning.MIQPPruningClassifier</a></code> have a look <a href="https://www.cvxpy.org/tutorial/advanced/index.html#solve-method-options">here</a>.</p>
+<h2 id="pruning-an-ensemble">Pruning An Ensemble</h2>
+<p>A complete example might look like this. See below for more details and <code>run/tests.py</code> for a complete example:</p>
+<pre><code class="language-Python">data, target = load_digits(return_X_y = True)
+
+XTP, Xtest, ytp, ytest = train_test_split(data, target, test_size=0.25, random_state=42)
+Xtrain, Xprune, ytrain, yprune = train_test_split(XTP, ytp, test_size=0.25, random_state=42)
+
+n_base = 128
+n_prune = 8
+model = RandomForestClassifier(n_estimators=n_base)
+model.fit(XTP, ytp)
+pred = model.predict(Xtest)
+
+print(&quot;Accuracy of RF trained on XTrain + XPrune with {} estimators: {} %&quot;.format(n_base, 100.0 * accuracy_score(ytest, pred)))
+
+model = RandomForestClassifier(n_estimators=n_base)
+model.fit(Xtrain, ytrain)
+pred = model.predict(Xtest)
+
+print(&quot;Accuracy of RF trained on XTrain only with {} estimators: {} %&quot;.format(n_base, 100.0 * accuracy_score(ytest, pred)))
+
+pruned_model = RandomPruningClassifier(n_estimators = n_prune)
+pruned_model.prune(Xprune, yprune, model.estimators_)
+pred = pruned_model.predict(Xtest)
+print(&quot;Accuracy of RandomPruningClassifier with {} estimators: {} %&quot;.format(n_prune, 100.0 * accuracy_score(ytest, pred)))
+
+pruned_model = GreedyPruningClassifier(n_prune, single_metric = error)
+pruned_model.prune(Xtrain, ytrain, model.estimators_)
+pred = pruned_model.predict(Xtest)
+print(&quot;GreedyPruningClassifier with {} estimators and {} metric is {} %&quot;.format(n_prune, m.__name__, 100.0 * accuracy_score(ytest, pred)))
+
+pruned_model = MIQPPruningClassifier(n_prune, single_metric = error)
+pruned_model.prune(Xtrain, ytrain, model.estimators_)
+pred = pruned_model.predict(Xtest)
+print(&quot;MIQPPruningClassifier with {} estimators and {} metric is {} %&quot;.format(n_prune, m.__name__, 100.0 * accuracy_score(ytest, pred)))
+</code></pre>
+<p>Every pruning method offers the same interface for pruning:</p>
+<pre><code class="language-Python">prune(self, X, y, estimators)
+</code></pre>
+<p>where </p>
+<ul>
+<li><code>X</code> are the pruning examples, </li>
+<li><code>y</code> are the corresponding pruning targets </li>
+<li><code>estimators</code> is the list of estimators to be pruned. </li>
+<li><code>classes</code> a list of classes this classifier was trained on which corresponding to the order of <code>predict_proba</code>. If this is <code>None</code> we try to infer this from the base estimators</li>
+<li><code>n_classes</code> the total number of classes. If this is <code>None</code> we try to infer this from the base estimators</li>
+</ul>
+<p>We assume that each estimator in <code>estimators</code> has the following functions / fields: </p>
+<ul>
+<li><code>predict(X)</code>: Returns the class predictions for each example in X. Result should be <code>(X.shape[0], )</code></li>
+<li><code>predict_proba(X)</code>: Returns the class probabilities for each example in X. Result should be <code>(X.shape[0], n_classes_)</code> where <code>n_classes_</code> is the number of classes the classifier was trained on.</li>
+</ul>
+<p>Moreover, each classifier should support <code>copy.deepcopy()</code>. Again for details please have a look at the specific source code.</p>
+<h2 id="reproducing-results-from-literature">Reproducing Results From Literature</h2>
+<p>There is a decent amount of pruning methods available in literature which mostly differs by the scoring functions used to score the performance of sub-ensembles. The <code><a title="PyPruning.GreedyPruningClassifier" href="GreedyPruningClassifier.html">PyPruning.GreedyPruningClassifier</a></code>, <code><a title="PyPruning.MIQPPruningClassifier" href="MIQPPruningClassifier.html">PyPruning.MIQPPruningClassifier</a></code> and the <code><a title="PyPruning.RankPruningClassifier" href="RankPruningClassifier.html">PyPruning.RankPruningClassifier</a></code> all support the use of different metrics. Please have a look at the specific class files to see which metrics are already implemented. If you cannot find you metric of choice feel free to implement it (details below). Currently supported are</p>
+<ul>
+<li><code>individual_margin_diversity</code> (Guo, H., Liu, H., Li, R., Wu, C., Guo, Y., &amp; Xu, M. (2018). Margin &amp; diversity based ordering ensemble pruning. Neurocomputing, 275, 237–246. <a href="https://doi.org/10.1016/j.neucom.2017.06.052">https://doi.org/10.1016/j.neucom.2017.06.052</a>)</li>
+<li><code>individual_contribution</code> (Lu, Z., Wu, X., Zhu, X., &amp; Bongard, J. (2010). Ensemble pruning via individual contribution ordering. Proceedings of the ACM SIGKDD International Conference on Knowledge Discovery and Data Mining, 871–880. <a href="https://doi.org/10.1145/1835804.1835914">https://doi.org/10.1145/1835804.1835914</a>)</li>
+<li><code>individual_error</code></li>
+<li><code>individual_kappa_statistic</code> (Margineantu, D., &amp; Dietterich, T. G. (1997). Pruning Adaptive Boosting. Proceedings of the Fourteenth International Conference on Machine Learning, 211–218. <a href="https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.38.7017&amp;rep=rep1&amp;type=pdf">https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.38.7017&amp;rep=rep1&amp;type=pdf</a>)</li>
+<li><code>reduced_error</code> (Margineantu, D., &amp; Dietterich, T. G. (1997). Pruning Adaptive Boosting. Proceedings of the Fourteenth International Conference on Machine Learning, 211–218. <a href="https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.38.7017&amp;rep=rep1&amp;type=pdf">https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.38.7017&amp;rep=rep1&amp;type=pdf</a>)</li>
+<li><code>complementariness</code> (Martínez-Muñoz, G., &amp; Suárez, A. (2004). Aggregation ordering in bagging. Proceedings of the IASTED International Conference. Applied Informatics, 258–263. Retrieved from <a href="https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.59.2035&amp;rep=rep1&amp;type=pdf">https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.59.2035&amp;rep=rep1&amp;type=pdf</a>)</li>
+<li><code>drep</code> (Li, N., Yu, Y., &amp; Zhou, Z.-H. (2012). Diversity Regularized Ensemble Pruning. In P. A. Flach, T. De Bie, &amp; N. Cristianini (Eds.), Machine Learning and Knowledge Discovery in Databases (pp. 330–345). Berlin, Heidelberg: Springer Berlin Heidelberg. <a href="https://link.springer.com/content/pdf/10.1007%2F978-3-642-33460-3.pdf">https://link.springer.com/content/pdf/10.1007%2F978-3-642-33460-3.pdf</a>)</li>
+<li><code>margin_distance</code> (Martínez-Muñoz, G., &amp; Suárez, A. (2004). Aggregation ordering in bagging. Proceedings of the IASTED International Conference. Applied Informatics, 258–263. Retrieved from <a href="https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.59.2035&amp;rep=rep1&amp;type=pdf">https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.59.2035&amp;rep=rep1&amp;type=pdf</a>)</li>
+<li><code>combined</code> (Cavalcanti, G. D. C., Oliveira, L. S., Moura, T. J. M., &amp; Carvalho, G. V. (2016). Combining diversity measures for ensemble pruning. Pattern Recognition Letters, 74, 38–45. <a href="https://doi.org/10.1016/j.patrec.2016.01.029">https://doi.org/10.1016/j.patrec.2016.01.029</a>)</li>
+<li><code>combined_error</code> (Zhang, Y., Burer, S., &amp; Street, W. N. (2006). Ensemble Pruning Via Semi-definite Programming. Journal of Machine Learning Research, 7, 1315–1338. <a href="https://doi.org/10.1016/j.jasms.2006.06.007">https://doi.org/10.1016/j.jasms.2006.06.007</a>)</li>
+<li><code>reference_vector</code> (Hernández-Lobato, D., Martínez-Muñoz, G., &amp; Suárez, A. (2006). Pruning in Ordered Bagging Ensembles. International Conference on Machine Learning, 1266–1273. <a href="https://doi.org/10.1109/ijcnn.2006.246837">https://doi.org/10.1109/ijcnn.2006.246837</a>)</li>
+</ul>
+<p>For convenience you can access these pruning methods via the <code>create_pruner</code> function:</p>
+<pre><code class="language-Python">from PyPruning.Papers import create_pruner
+md_pruner = create_pruner(&quot;margin_distance&quot;, n_estimators=10)
+</code></pre>
+<h2 id="extending-pypruning">Extending Pypruning</h2>
+<p>If you want to implement your own pruning method then there are two ways:</p>
+<h3 id="implementing-a-custom-metric">Implementing a custom metric</h3>
+<p>You can implement your own metric for <code><a title="PyPruning.GreedyPruningClassifier" href="GreedyPruningClassifier.html">PyPruning.GreedyPruningClassifier</a></code>, <code><a title="PyPruning.MIQPPruningClassifier" href="MIQPPruningClassifier.html">PyPruning.MIQPPruningClassifier</a></code> or a <code><a title="PyPruning.RankPruningClassifier" href="RankPruningClassifier.html">PyPruning.RankPruningClassifier</a></code> you simply have to implement a python function that should be <em>minimized</em>. The specific interface required by each method slightly differs so please check out the specific documentation for the method of your choice. In all cases, each method expects functions with at-least three parameters</p>
+<ul>
+<li><code>i</code> (int): The classifier which should be rated</li>
+<li><code>ensemble_proba</code> (A (M, N, C) matrix ): All N predictions of all M classifier in the entire ensemble for all C classes</li>
+<li><code>target</code> (list / array): A list / array of class targets.</li>
+</ul>
+<p>Note that <code>ensemble_proba</code> contains all class probabilities predicted by all members in the ensemble. So in order to get individual class predictions for the i-th classifier you can access it via <code>ensemble_proba[i,:,:]</code>. A complete example which simply computes the error of each method would be</p>
+<pre><code class="language-Python">def individual_error(i, ensemble_proba, target):
+    iproba = ensemble_proba[i,:,:]
+    return (iproba.argmax(axis=1) != target).mean()
+</code></pre>
+<h3 id="implementing-a-custom-pruner">Implementing a custom pruner</h3>
+<p>You can implement your own pruner as a well. In this case you just have to implement the <code><a title="PyPruning.PruningClassifier" href="PruningClassifier.html">PyPruning.PruningClassifier</a></code> class. To do so, you just need to implement the <code>prune_(self, proba, target)</code> function which receives a list of all predictions of all classifiers as well as the corresponding data and targets. The function is supposed to return a list of indices corresponding to the chosen estimators as well as the corresponding weights. If you need access to the estimators as well (and not just their predictions) you can access <code>self.estimators_</code> which already contains a copy of each classier. For more details have a look at the <code>PruningClassifier.py</code> interface. An example implementation could be:</p>
+<pre><code class="language-Python">class RandomPruningClassifier(PruningClassifier):
+
+    def __init__(self):
+        super().__init__()
+
+    def prune_(self, proba, target, data = None):
+        n_received = len(proba)
+        if self.n_estimators &gt;= n_received:
+            return range(0, n_received), [1.0 / n_received for _ in range(n_received)]
+        else:
+            return np.random.choice(range(0, n_received),size=self.n_estimators), [1.0 / self.n_estimators for _ in range(self.n_estimators)]
+</code></pre>
+<p>For more details check out the abstract class <code><a title="PyPruning.PruningClassifier" href="PruningClassifier.html">PyPruning.PruningClassifier</a></code></p>
+<h2 id="acknowledgements">Acknowledgements</h2>
+<p>The software is written and maintained by <a href="https://sbuschjaeger.github.io/">Sebastian Buschjäger</a> as part of his work at the <a href="https://www-ai.cs.tu-dortmund.de">Chair for Artificial Intelligence</a> at the TU Dortmund University and the <a href="https://sfb876.tu-dortmund.de">Collaborative Research Center 876</a>. If you have any question feel free to contact me under <a href="sebastian.buschjaeger@tu-dortmund.de">sebastian.buschjaeger@tu-dortmund.de</a>.
+Special thanks goes to <a href="henri.petuker@tu-dortmund.de">Henri Petuker</a> who implemented the initial version of many of these algorithms during his bachelor thesis.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+PyPruning
+---------
+
+.. image:: ../../images/ls8.png
+
+Ensemble Algorithms implemented in Python. You can install this package via pip
+
+    pip install git+https://github.com/sbuschjaeger/PyPruning.git
+
+This package provides implementations for some common ensemble pruning algorithms. Pruning algorithms aim to select the best subset of an trained ensemble to minimize memory consumption and maximize accuracy. Currently, four types of pruning algorithms are implemented:
+
+- `RandomPruningClassifier`: Selects a random subset of classifiers. This is mainly used as a reference.
+- `GreedyPruningClassifier`: Proceeds in rounds and selects the best classifier in each round given the already selected sub-ensemble. These methods usually yield good results in a decent runtime.
+- `MIQPPruningClassifier`: Constructs a mixed-integer quadratic problem and optimizes this to compute the best sub ensemble. This usually yields a slightly better overall performance, but can have a much higher runtime for larger ensembles. Additionally, for larger ensembles numerical instabilities sometimes trouble the solver which then  might not find a valid solution.
+- `ProxPruningClassifier`: This pruning method performs proximal gradient descent on the ensembles weights. It is much faster compared to `MIQPPruningClassifier` with similar results. We have shown that this method statistically beats the other methods. In addition, this method allows you to regularize the selected ensemble to e.g. focus on smaller trees. 
+
+For details on each method please have a look at the documentation. If you have trouble with dependencies you can try setting up a conda environment which I use for development:
+
+```
+conda env create -f environment.yml
+conda activate pypruning
+```
+
+### Some notes on the MIQPPruningClassifier
+
+For implementing the `MIQPPruningClassifier` we use `cvxpy` which does _not_ come with a MIQP solver. If you want to use this algorithm you have to manually install a solver, e.g.
+
+    pip install cvopt
+
+for a free solver or if you want to use a commercial solver and use Anaconda you can also install gurobi (with a free license)
+
+    conda install -c gurobi gurobi
+
+For more information on setting the solver for `MIQPPruningClassifier` have a look [here](https://www.cvxpy.org/tutorial/advanced/index.html#solve-method-options).
+
+Pruning an ensemble
+-------------------
+
+A complete example might look like this. See below for more details and `run/tests.py` for a complete example:
+
+```Python
+data, target = load_digits(return_X_y = True)
+
+XTP, Xtest, ytp, ytest = train_test_split(data, target, test_size=0.25, random_state=42)
+Xtrain, Xprune, ytrain, yprune = train_test_split(XTP, ytp, test_size=0.25, random_state=42)
+
+n_base = 128
+n_prune = 8
+model = RandomForestClassifier(n_estimators=n_base)
+model.fit(XTP, ytp)
+pred = model.predict(Xtest)
+
+print(&#34;Accuracy of RF trained on XTrain + XPrune with {} estimators: {} %&#34;.format(n_base, 100.0 * accuracy_score(ytest, pred)))
+
+model = RandomForestClassifier(n_estimators=n_base)
+model.fit(Xtrain, ytrain)
+pred = model.predict(Xtest)
+
+print(&#34;Accuracy of RF trained on XTrain only with {} estimators: {} %&#34;.format(n_base, 100.0 * accuracy_score(ytest, pred)))
+
+pruned_model = RandomPruningClassifier(n_estimators = n_prune)
+pruned_model.prune(Xprune, yprune, model.estimators_)
+pred = pruned_model.predict(Xtest)
+print(&#34;Accuracy of RandomPruningClassifier with {} estimators: {} %&#34;.format(n_prune, 100.0 * accuracy_score(ytest, pred)))
+
+pruned_model = GreedyPruningClassifier(n_prune, single_metric = error)
+pruned_model.prune(Xtrain, ytrain, model.estimators_)
+pred = pruned_model.predict(Xtest)
+print(&#34;GreedyPruningClassifier with {} estimators and {} metric is {} %&#34;.format(n_prune, m.__name__, 100.0 * accuracy_score(ytest, pred)))
+
+pruned_model = MIQPPruningClassifier(n_prune, single_metric = error)
+pruned_model.prune(Xtrain, ytrain, model.estimators_)
+pred = pruned_model.predict(Xtest)
+print(&#34;MIQPPruningClassifier with {} estimators and {} metric is {} %&#34;.format(n_prune, m.__name__, 100.0 * accuracy_score(ytest, pred)))
+```
+
+Every pruning method offers the same interface for pruning:
+```Python
+prune(self, X, y, estimators)
+```
+where 
+
+- `X` are the pruning examples, 
+- `y` are the corresponding pruning targets 
+- `estimators` is the list of estimators to be pruned. 
+- `classes` a list of classes this classifier was trained on which corresponding to the order of `predict_proba`. If this is `None` we try to infer this from the base estimators
+- `n_classes` the total number of classes. If this is `None` we try to infer this from the base estimators
+
+We assume that each estimator in `estimators` has the following functions / fields: 
+
+- `predict(X)`: Returns the class predictions for each example in X. Result should be `(X.shape[0], )`
+- `predict_proba(X)`: Returns the class probabilities for each example in X. Result should be `(X.shape[0], n_classes_)` where `n_classes_` is the number of classes the classifier was trained on.
+
+Moreover, each classifier should support `copy.deepcopy()`. Again for details please have a look at the specific source code.
+
+
+Reproducing results from literature
+-----------------------------------
+
+There is a decent amount of pruning methods available in literature which mostly differs by the scoring functions used to score the performance of sub-ensembles. The `GreedyPruningClassifier`, `MIQPPruningClassifier` and the `RankPruningClassifier` all support the use of different metrics. Please have a look at the specific class files to see which metrics are already implemented. If you cannot find you metric of choice feel free to implement it (details below). Currently supported are
+
+- `individual_margin_diversity` (Guo, H., Liu, H., Li, R., Wu, C., Guo, Y., &amp; Xu, M. (2018). Margin &amp; diversity based ordering ensemble pruning. Neurocomputing, 275, 237–246. https://doi.org/10.1016/j.neucom.2017.06.052)
+- `individual_contribution` (Lu, Z., Wu, X., Zhu, X., &amp; Bongard, J. (2010). Ensemble pruning via individual contribution ordering. Proceedings of the ACM SIGKDD International Conference on Knowledge Discovery and Data Mining, 871–880. https://doi.org/10.1145/1835804.1835914)
+- `individual_error`
+- `individual_kappa_statistic` (Margineantu, D., &amp; Dietterich, T. G. (1997). Pruning Adaptive Boosting. Proceedings of the Fourteenth International Conference on Machine Learning, 211–218. https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.38.7017&amp;rep=rep1&amp;type=pdf)
+- `reduced_error` (Margineantu, D., &amp; Dietterich, T. G. (1997). Pruning Adaptive Boosting. Proceedings of the Fourteenth International Conference on Machine Learning, 211–218. https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.38.7017&amp;rep=rep1&amp;type=pdf)
+- `complementariness` (Martínez-Muñoz, G., &amp; Suárez, A. (2004). Aggregation ordering in bagging. Proceedings of the IASTED International Conference. Applied Informatics, 258–263. Retrieved from https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.59.2035&amp;rep=rep1&amp;type=pdf)
+- `drep` (Li, N., Yu, Y., &amp; Zhou, Z.-H. (2012). Diversity Regularized Ensemble Pruning. In P. A. Flach, T. De Bie, &amp; N. Cristianini (Eds.), Machine Learning and Knowledge Discovery in Databases (pp. 330–345). Berlin, Heidelberg: Springer Berlin Heidelberg. https://link.springer.com/content/pdf/10.1007%2F978-3-642-33460-3.pdf)
+- `margin_distance` (Martínez-Muñoz, G., &amp; Suárez, A. (2004). Aggregation ordering in bagging. Proceedings of the IASTED International Conference. Applied Informatics, 258–263. Retrieved from https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.59.2035&amp;rep=rep1&amp;type=pdf)
+- `combined` (Cavalcanti, G. D. C., Oliveira, L. S., Moura, T. J. M., &amp; Carvalho, G. V. (2016). Combining diversity measures for ensemble pruning. Pattern Recognition Letters, 74, 38–45. https://doi.org/10.1016/j.patrec.2016.01.029)
+- `combined_error` (Zhang, Y., Burer, S., &amp; Street, W. N. (2006). Ensemble Pruning Via Semi-definite Programming. Journal of Machine Learning Research, 7, 1315–1338. https://doi.org/10.1016/j.jasms.2006.06.007)
+- `reference_vector` (Hernández-Lobato, D., Martínez-Muñoz, G., &amp; Suárez, A. (2006). Pruning in Ordered Bagging Ensembles. International Conference on Machine Learning, 1266–1273. https://doi.org/10.1109/ijcnn.2006.246837)
+
+For convenience you can access these pruning methods via the `create_pruner` function:
+```Python
+from PyPruning.Papers import create_pruner
+md_pruner = create_pruner(&#34;margin_distance&#34;, n_estimators=10)
+```
+
+Extending PyPruning
+-------------------
+
+If you want to implement your own pruning method then there are two ways:
+
+### Implementing a custom metric
+
+You can implement your own metric for `GreedyPruningClassifier`, `MIQPPruningClassifier` or a `RankPruningClassifier` you simply have to implement a python function that should be _minimized_. The specific interface required by each method slightly differs so please check out the specific documentation for the method of your choice. In all cases, each method expects functions with at-least three parameters
+
+- `i` (int): The classifier which should be rated
+- `ensemble_proba` (A (M, N, C) matrix ): All N predictions of all M classifier in the entire ensemble for all C classes
+- `target` (list / array): A list / array of class targets.
+
+Note that `ensemble_proba` contains all class probabilities predicted by all members in the ensemble. So in order to get individual class predictions for the i-th classifier you can access it via `ensemble_proba[i,:,:]`. A complete example which simply computes the error of each method would be
+
+```Python
+def individual_error(i, ensemble_proba, target):
+    iproba = ensemble_proba[i,:,:]
+    return (iproba.argmax(axis=1) != target).mean()
+```
+
+### Implementing a custom pruner
+
+You can implement your own pruner as a well. In this case you just have to implement the `PruningClassifier` class. To do so, you just need to implement the `prune_(self, proba, target)` function which receives a list of all predictions of all classifiers as well as the corresponding data and targets. The function is supposed to return a list of indices corresponding to the chosen estimators as well as the corresponding weights. If you need access to the estimators as well (and not just their predictions) you can access `self.estimators_` which already contains a copy of each classier. For more details have a look at the `PruningClassifier.py` interface. An example implementation could be:
+
+
+```Python
+class RandomPruningClassifier(PruningClassifier):
+
+    def __init__(self):
+        super().__init__()
+
+    def prune_(self, proba, target, data = None):
+        n_received = len(proba)
+        if self.n_estimators &gt;= n_received:
+            return range(0, n_received), [1.0 / n_received for _ in range(n_received)]
+        else:
+            return np.random.choice(range(0, n_received),size=self.n_estimators), [1.0 / self.n_estimators for _ in range(self.n_estimators)]
+```
+For more details check out the abstract class `PruningClassifier`
+
+Acknowledgements
+----------------
+The software is written and maintained by [Sebastian Buschjäger](https://sbuschjaeger.github.io/) as part of his work at the [Chair for Artificial Intelligence](https://www-ai.cs.tu-dortmund.de) at the TU Dortmund University and the [Collaborative Research Center 876](https://sfb876.tu-dortmund.de). If you have any question feel free to contact me under [sebastian.buschjaeger@tu-dortmund.de](sebastian.buschjaeger@tu-dortmund.de).
+Special thanks goes to [Henri Petuker](henri.petuker@tu-dortmund.de) who implemented the initial version of many of these algorithms during his bachelor thesis.
+
+&#34;&#34;&#34;</code></pre>
+</details>
+</section>
+<section>
+<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+<dl>
+<dt><code class="name"><a title="PyPruning.GreedyPruningClassifier" href="GreedyPruningClassifier.html">PyPruning.GreedyPruningClassifier</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt><code class="name"><a title="PyPruning.MIQPPruningClassifier" href="MIQPPruningClassifier.html">PyPruning.MIQPPruningClassifier</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt><code class="name"><a title="PyPruning.Papers" href="Papers.html">PyPruning.Papers</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt><code class="name"><a title="PyPruning.ProxPruningClassifier" href="ProxPruningClassifier.html">PyPruning.ProxPruningClassifier</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt><code class="name"><a title="PyPruning.PruningClassifier" href="PruningClassifier.html">PyPruning.PruningClassifier</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt><code class="name"><a title="PyPruning.RandomPruningClassifier" href="RandomPruningClassifier.html">PyPruning.RandomPruningClassifier</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt><code class="name"><a title="PyPruning.RankPruningClassifier" href="RankPruningClassifier.html">PyPruning.RankPruningClassifier</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt><code class="name"><a title="PyPruning.tests" href="tests/index.html">PyPruning.tests</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<img src="../../images/ls8.png" alt="LS8">
+<h1>Index</h1>
+<div class="toc">
+<ul>
+<li><a href="#pypruning">PyPruning</a><ul>
+<li><a href="#some-notes-on-the-miqppruningclassifier">Some notes on the MIQPPruningClassifier</a></li>
+</ul>
+</li>
+<li><a href="#pruning-an-ensemble">Pruning an ensemble</a></li>
+<li><a href="#reproducing-results-from-literature">Reproducing results from literature</a></li>
+<li><a href="#extending-pypruning">Extending PyPruning</a><ul>
+<li><a href="#implementing-a-custom-metric">Implementing a custom metric</a></li>
+<li><a href="#implementing-a-custom-pruner">Implementing a custom pruner</a></li>
+</ul>
+</li>
+<li><a href="#acknowledgements">Acknowledgements</a></li>
+</ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<ul>
+<li><code><a title="PyPruning.GreedyPruningClassifier" href="GreedyPruningClassifier.html">PyPruning.GreedyPruningClassifier</a></code></li>
+<li><code><a title="PyPruning.MIQPPruningClassifier" href="MIQPPruningClassifier.html">PyPruning.MIQPPruningClassifier</a></code></li>
+<li><code><a title="PyPruning.Papers" href="Papers.html">PyPruning.Papers</a></code></li>
+<li><code><a title="PyPruning.ProxPruningClassifier" href="ProxPruningClassifier.html">PyPruning.ProxPruningClassifier</a></code></li>
+<li><code><a title="PyPruning.PruningClassifier" href="PruningClassifier.html">PyPruning.PruningClassifier</a></code></li>
+<li><code><a title="PyPruning.RandomPruningClassifier" href="RandomPruningClassifier.html">PyPruning.RandomPruningClassifier</a></code></li>
+<li><code><a title="PyPruning.RankPruningClassifier" href="RankPruningClassifier.html">PyPruning.RankPruningClassifier</a></code></li>
+<li><code><a title="PyPruning.tests" href="tests/index.html">PyPruning.tests</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+The software is written and maintained by <a href="https://sbuschjaeger.github.io/">Sebastian Buschjäger</a> as part of his work at the <a href="https://www-ai.cs.tu-dortmund.de">Chair for Artificial Intelligence</a> at the TU Dortmund University and the <a href="https://sfb876.tu-dortmund.de">Collaborative Research Center 876, project A1</a>. If you have any question feel free to contact me under <a href="mailto:sebstian.buschjaeger@tu-dortmund.de">sebstian.buschjaeger@tu-dortmund.de</a>.
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>
