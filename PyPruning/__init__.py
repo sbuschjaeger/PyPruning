@@ -1,6 +1,5 @@
-# PyPruning
-
-Ensemble Algorithms implemented in Python. You can install this package via pip
+"""
+Ensemble pruning algorithms implemented in Python. You can install this package via pip
 
     pip install git+https://github.com/sbuschjaeger/PyPruning.git
 
@@ -11,14 +10,14 @@ This package provides implementations for some common ensemble pruning algorithm
 - `MIQPPruningClassifier`: Constructs a mixed-integer quadratic problem and optimizes this to compute the best sub ensemble. This usually yields a slightly better overall performance, but can have a much higher runtime for larger ensembles. Additionally, for larger ensembles numerical instabilities sometimes trouble the solver which then  might not find a valid solution.
 - `ProxPruningClassifier`: This pruning method performs proximal gradient descent on the ensembles weights. It is much faster compared to `MIQPPruningClassifier` with similar results. We have shown that this method statistically beats the other methods. In addition, this method allows you to regularize the selected ensemble to e.g. focus on smaller trees. 
 
-For details on each method please have a look at the documentation. 
+For details on each method please have a look at the documentation. If you have trouble with dependencies you can try setting up a conda environment which I use for development:
 
-# Some notes on the MIQPPruningClassifier 
+```
+conda env create -f environment.yml
+conda activate pypruning
+```
 
-Installing this package should already give you all necessary dependencies. If something is missing there is a conda environment for development. Try building and using it via
-
-    conda env create -f environment.yml
-    conda activate pypruning
+### Some notes on the MIQPPruningClassifier
 
 For implementing the `MIQPPruningClassifier` we use `cvxpy` which does _not_ come with a MIQP solver. If you want to use this algorithm you have to manually install a solver, e.g.
 
@@ -30,12 +29,12 @@ for a free solver or if you want to use a commercial solver and use Anaconda you
 
 For more information on setting the solver for `MIQPPruningClassifier` have a look [here](https://www.cvxpy.org/tutorial/advanced/index.html#solve-method-options).
 
-# Pruning an ensemble
+Pruning an ensemble
+-------------------
 
 A complete example might look like this. See below for more details and `run/tests.py` for a complete example:
 
 ```Python
-
 data, target = load_digits(return_X_y = True)
 
 XTP, Xtest, ytp, ytest = train_test_split(data, target, test_size=0.25, random_state=42)
@@ -71,11 +70,11 @@ pred = pruned_model.predict(Xtest)
 print("MIQPPruningClassifier with {} estimators and {} metric is {} %".format(n_prune, m.__name__, 100.0 * accuracy_score(ytest, pred)))
 ```
 
-To prune a set of estimators just call
+Every pruning method offers the same interface for pruning:
 ```Python
-def prune(self, X, y, estimators):
+prune(self, X, y, estimators)
 ```
-of one of the pruning classes, where 
+where 
 
 - `X` are the pruning examples, 
 - `y` are the corresponding pruning targets 
@@ -88,12 +87,13 @@ We assume that each estimator in `estimators` has the following functions / fiel
 - `predict(X)`: Returns the class predictions for each example in X. Result should be `(X.shape[0], )`
 - `predict_proba(X)`: Returns the class probabilities for each example in X. Result should be `(X.shape[0], n_classes_)` where `n_classes_` is the number of classes the classifier was trained on.
 
-Moreover, each classifier should support `copy.deepcopy()`. 
+Moreover, each classifier should support `copy.deepcopy()`. Again for details please have a look at the specific source code.
 
 
-# Reproducing results from literature
+Reproducing results from literature
+-----------------------------------
 
-There is a decent amount of pruning methods available in literature which mostly differs by the scoring functions used to score the performance of sub-ensembles. The `GreedyPruningClassifier`, `MIQPPruningClassifier` and the `RankPruningClassifier` all support the use of different metrics. Please have a look at the specific class files to see which metrics are already implemented. If you cannot find you metric of choice feel free to implement it (details below). Last, `Papers.py` also contains a helper function `create_pruner` which lets you select a pruning method based on common names in literature. Currently supported are
+There is a decent amount of pruning methods available in literature which mostly differs by the scoring functions used to score the performance of sub-ensembles. The `GreedyPruningClassifier`, `MIQPPruningClassifier` and the `RankPruningClassifier` all support the use of different metrics. Please have a look at the specific class files to see which metrics are already implemented. If you cannot find you metric of choice feel free to implement it (details below). Currently supported are
 
 - `individual_margin_diversity` (Guo, H., Liu, H., Li, R., Wu, C., Guo, Y., & Xu, M. (2018). Margin & diversity based ordering ensemble pruning. Neurocomputing, 275, 237–246. https://doi.org/10.1016/j.neucom.2017.06.052)
 - `individual_contribution` (Lu, Z., Wu, X., Zhu, X., & Bongard, J. (2010). Ensemble pruning via individual contribution ordering. Proceedings of the ACM SIGKDD International Conference on Knowledge Discovery and Data Mining, 871–880. https://doi.org/10.1145/1835804.1835914)
@@ -107,13 +107,18 @@ There is a decent amount of pruning methods available in literature which mostly
 - `combined_error` (Zhang, Y., Burer, S., & Street, W. N. (2006). Ensemble Pruning Via Semi-definite Programming. Journal of Machine Learning Research, 7, 1315–1338. https://doi.org/10.1016/j.jasms.2006.06.007)
 - `reference_vector` (Hernández-Lobato, D., Martínez-Muñoz, G., & Suárez, A. (2006). Pruning in Ordered Bagging Ensembles. International Conference on Machine Learning, 1266–1273. https://doi.org/10.1109/ijcnn.2006.246837)
 
-For a complete example also have a look at `run/tests.py`.
+For convenience you can access these pruning methods via the `create_pruner` function:
+```Python
+from PyPruning.Papers import create_pruner
+md_pruner = create_pruner("margin_distance", n_estimators=10)
+```
 
-# Extending PyPruning
+Extending PyPruning
+-------------------
 
 If you want to implement your own pruning method then there are two ways:
 
-## Implementing a custom metric
+### Implementing a custom metric
 
 You can implement your own metric for `GreedyPruningClassifier`, `MIQPPruningClassifier` or a `RankPruningClassifier` you simply have to implement a python function that should be _minimized_. The specific interface required by each method slightly differs so please check out the specific documentation for the method of your choice. In all cases, each method expects functions with at-least three parameters
 
@@ -129,7 +134,7 @@ def individual_error(i, ensemble_proba, target):
     return (iproba.argmax(axis=1) != target).mean()
 ```
 
-## Implementing a custom pruner
+### Implementing a custom pruner
 
 You can implement your own pruner as a well. In this case you just have to implement the `PruningClassifier` class. To do so, you just need to implement the `prune_(self, proba, target)` function which receives a list of all predictions of all classifiers as well as the corresponding data and targets. The function is supposed to return a list of indices corresponding to the chosen estimators as well as the corresponding weights. If you need access to the estimators as well (and not just their predictions) you can access `self.estimators_` which already contains a copy of each classier. For more details have a look at the `PruningClassifier.py` interface. An example implementation could be:
 
@@ -149,7 +154,9 @@ class RandomPruningClassifier(PruningClassifier):
 ```
 For more details check out the abstract class `PruningClassifier`
 
-# Acknowledgements 
+Acknowledgements
+----------------
+The software is written and maintained by [Sebastian Buschjäger](https://sbuschjaeger.github.io/) as part of his work at the [Chair for Artificial Intelligence](https://www-ai.cs.tu-dortmund.de) at the TU Dortmund University and the [Collaborative Research Center 876](https://sfb876.tu-dortmund.de). If you have any question feel free to contact me under [sebastian.buschjaeger@tu-dortmund.de](sebastian.buschjaeger@tu-dortmund.de).
+Special thanks goes to [Henri Petuker](henri.petuker@tu-dortmund.de) who implemented the initial version of many of these algorithms during his bachelor thesis.
 
-The software is written and maintained by [Sebastian Buschjäger](https://sbuschjaeger.github.io/) as part of his work at the [Chair for Artificial Intelligence](https://www-ai.cs.tu-dortmund.de) at the TU Dortmund University and the [Collaborative Research Center 876](https://sfb876.tu-dortmund.de). If you have any question feel free to contact me under sebastian.buschjaeger@tu-dortmund.de 
-Special thanks goes to Henri Petuker (henri.petuker@tu-dortmund.de) who implemented the initial version of many of these algorithms during his bachelor thesis.
+"""
