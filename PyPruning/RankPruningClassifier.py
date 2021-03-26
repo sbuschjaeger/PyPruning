@@ -145,7 +145,7 @@ def reference_vector(i, ensemble_proba, target):
     '''
     Compare how close the individual predictions is to the entire ensemble's prediction by using the cosine_similary
 
-    Note: The paper describes a slightly different distance metric which constructs the projection of ipred to a reference vector. Unfortunatly, the specific implementation of this reference vector is not epxlained in detail in the paper.However, the authors also note two things:
+    Note: The paper describes a slightly different distance metric compared to what is implemented here. The paper uses a projection to a reference vector, but - unfortunately - does not explain the specific implementation in detail. However, the authors also note two things:
     
     - (1) They use all classifier with an angle <= pi/2 which can lead to more than n_estimator classifier. Thus we need to present an ordering based on the angles and pick the first n_estimator.
     - (2) "The classifiers are ordered by increasing values of the angle between the signature vectors of the individual classifiers and the reference vector". 

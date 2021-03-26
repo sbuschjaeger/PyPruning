@@ -36,7 +36,7 @@ class PruningClassifier(ABC):
             A (N,M,C) matrix which contains the individual predictions of each ensemble member on the pruning data. Each ensemble prediction is generated via predict_proba. N is size of the pruning data, M the size of the base ensemble and C is the number of classes
         
         target: numpy array of ints 
-            A numpy array or list of N integers where each integer representas the class for each example. Classes should start with 0, so that for C classes the integer 0,1,...,C-1 are used
+            A numpy array or list of N integers where each integer represents the class for each example. Classes should start with 0, so that for C classes the integer 0,1,...,C-1 are used
         
         data:  numpy matrix, optional
             The data points in a (N, M) matrix on which the proba has been computed, where N is the pruning set size and M is the number of classifier in the original ensemble. This can be used by a pruning method if required, but most methods do not require the actual data points but only the individual predictions. 
@@ -54,10 +54,10 @@ class PruningClassifier(ABC):
     
     def prune(self, X, y, estimators, classes = None, n_classes = None):
         '''
-        Prunes the given ensemble on the supplied datset. There are a few assumptions placed on the behaviour of the individual classifiers in `estimators`. If you use scikit-learn classifier and any classifier implementing their interface they should work without a problem. The detailed assumptions are listed below:
+        Prunes the given ensemble on the supplied dataset. There are a few assumptions placed on the behavior of the individual classifiers in `estimators`. If you use scikit-learn classifier and any classifier implementing their interface they should work without a problem. The detailed assumptions are listed below:
          
         - `predict_proba`: Each estimator should offer a predict_proba function which returns the class probabilities for each class on a batch of data
-        - `n_classes_`: Each estimator should offer a field on the number of classes it has been trained on. Ideally, this should be the same for alle classifier in the ensemble but might differ e.g. due to different bootstrap samples. This field is not accessed if you manually supply `n_classes` as parameter to this function
+        - `n_classes_`: Each estimator should offer a field on the number of classes it has been trained on. Ideally, this should be the same for all classifier in the ensemble but might differ e.g. due to different bootstrap samples. This field is not accessed if you manually supply `n_classes` as parameter to this function
         - `classes_`: Each estimator should offer a class mapping which shows the order of classes returned by predict_proba. Usually this should simply be [0,1,2,3,4] for 5 classes, but if your classifier returns class probabilities in a different order, e.g. [2,1,0,3,4] you should store this order in `classes_`. This field is not accessed if you manually supply `classes` as parameter to this function
 
         For pruning this function calls `predict_proba` on each classifier in `estimators` and then calls `prune_` of the implementing class. After pruning, it extracts the selected classifiers from `estimators` with their corresponding weight and stores them in `self.weights_` and `self.estimators_`
@@ -65,10 +65,10 @@ class PruningClassifier(ABC):
         Parameters
         ----------
         X : numpy matrix
-            A (N, d) matrix with the datapoints used for pruning where N is the number of data points and d is the dimensionaltiy
+            A (N, d) matrix with the datapoints used for pruning where N is the number of data points and d is the dimensionality
         
         Y : numpy array / list of ints
-            A numpy array or list of N integers where each integer representas the class for each example. Classes should start with 0, so that for C classes the integer 0,1,...,C-1 are used
+            A numpy array or list of N integers where each integer represents the class for each example. Classes should start with 0, so that for C classes the integer 0,1,...,C-1 are used
         
         estimators : list
             A list of estimators from which the pruned ensemble is selected.
@@ -77,7 +77,7 @@ class PruningClassifier(ABC):
             Contains the class mappings of each base learner in the order which is returned by predict_proba. Usually this should be something like [0,1,2,3,4] for a 5 class problem. However, sometimes weird stuff happens and the mapping might be [2,1,0,3,4]. In this case, you can manually supply the list of mappings
         
         n_classes: int
-            The total number of classes. Usually, this it should be n_classes = len(classes). However, sometimes estimators are only fitted on a subset of data (e.g. during cross validation or bootstrapping) and the prune set might contain classes which are not in the oirignal training set and vice-versa. In this case its best to supply n_classes beforehand. 
+            The total number of classes. Usually, this it should be n_classes = len(classes). However, sometimes estimators are only fitted on a subset of data (e.g. during cross validation or bootstrapping) and the prune set might contain classes which are not in the original training set and vice-versa. In this case its best to supply n_classes beforehand. 
 
         Returns
         -------
@@ -86,7 +86,7 @@ class PruningClassifier(ABC):
         if classes is None:
             classes = [e.n_classes_ for e in estimators]
             if (len(set(classes)) > 1):
-                raise RuntimeError("Detected a different number of classes for each learner. Please make sure that all learners have their n_classes_ field set to the same value. Alternativley, you may supply a list of classes via the classes parameter to avoid this error.")
+                raise RuntimeError("Detected a different number of classes for each learner. Please make sure that all learners have their n_classes_ field set to the same value. Alternatively, you may supply a list of classes via the classes parameter to avoid this error.")
                 #self.n_classes_ = max(classes)
             else:
                 self.classes_ = estimators[0].classes_
@@ -98,7 +98,7 @@ class PruningClassifier(ABC):
             self.classes_ = classes
             self.n_classes_ = n_classes
 
-        # Okay this is a bit crazy, but has its reasons. This basically implements the for-loop below, but also takes care of the case where a single estimator did not receive all the labels. In this case predict_proba returns vectors with less than n_classes entries. This can happen in ExtraTrees, but also in RF, especially with unfavourable cross validation splits or large class imbalances. 
+        # Okay this is a bit crazy, but has its reasons. This basically implements the for-loop below, but also takes care of the case where a single estimator did not receive all the labels. In this case predict_proba returns vectors with less than n_classes entries. This can happen in ExtraTrees, but also in RF, especially with unfavorable cross validation splits or large class imbalances. 
         # Anyway, this code construct the desired matrix and copies all predictions to the corresponding locations based on e.classes_. This **should** be correct for numeric classes staring by 0 and also anything which is mapped via the SKLearns LabelEncoder.  
         proba = np.zeros(shape=(len(estimators), X.shape[0], self.n_classes_), dtype=np.float32)
         for i, e in enumerate(estimators):

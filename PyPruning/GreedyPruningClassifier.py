@@ -33,7 +33,7 @@ def neg_auc(i, ensemble_proba, sub_proba, target):
 
 def complementariness(i, ensemble_proba, sub_proba, target):
     '''
-    Computes the complementariness of the i-th classifier wrt. to the sub-ensemble. A classifier is complemantry to the sub-ensemble if it disagrees with the ensemble, but is correct (and the ensemble is wrong)
+    Computes the complementariness of the i-th classifier wrt. to the sub-ensemble. A classifier is complementary to the sub-ensemble if it disagrees with the ensemble, but is correct (and the ensemble is wrong)
 
     Reference:
         Martínez-Muñoz, G., & Suárez, A. (2004). Aggregation ordering in bagging. Proceedings of the IASTED International Conference. Applied Informatics, 258–263. Retrieved from https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.59.2035&rep=rep1&type=pdf
@@ -65,7 +65,7 @@ def margin_distance(i, ensemble_proba, sub_proba, target):
 def drep(i, ensemble_proba, sub_proba, target):
     '''
     A multi-class version of a PAC-style bound which includes the diversity of the sub-ensemble. This basically counts the number of different predictions between the i-th classifier and the sub-ensemble.
-
+    
     Reference:
         Li, N., Yu, Y., & Zhou, Z.-H. (2012). Diversity Regularized Ensemble Pruning. In P. A. Flach, T. De Bie, & N. Cristianini (Eds.), Machine Learning and Knowledge Discovery in Databases (pp. 330–345). Berlin, Heidelberg: Springer Berlin Heidelberg. https://link.springer.com/content/pdf/10.1007%2F978-3-642-33460-3.pdf
     '''
@@ -109,7 +109,7 @@ class GreedyPruningClassifier(PruningClassifier):
     ----------
     n_estimators : int, default is 5
         The number of estimators which should be selected.
-    metric : function, default is individual_error
+    metric : function, default is error
         A function that assigns a score (smaller is better) to each classifier which is then used for selecting the next classifier in each round
     n_jobs : int, default is 8
         The number of threads used for computing the individual metrics for each classifier.

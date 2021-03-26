@@ -46,7 +46,7 @@ def to_prob_simplex(x):
     return [max(xi + l, 0.0) for xi in x]
 
 class ProxPruningClassifier(PruningClassifier):
-    """ (Heterogenous) Pruning via Proximal Gradient Descent
+    """ (Heterogeneous) Pruning via Proximal Gradient Descent
     
     This pruning method directly minimizes
     $$
@@ -63,7 +63,7 @@ class ProxPruningClassifier(PruningClassifier):
         The step_size used for stochastic gradient descent for opt 
     loss : str
         The loss function for training. Should be one of `{"mse", "cross-entropy", "hinge2"}`
-    normalize_weights : bool
+    normalize_weights : boolean
         True if nonzero weights should be projected onto the probability simplex, that is they should sum to 1. 
     ensemble_regularizer : str
         The ensemble_regularizer. Should be one of `{None, "L0", "L1", "hard-L1"}`
@@ -77,7 +77,7 @@ class ProxPruningClassifier(PruningClassifier):
         The batch sized used for SGD
     epochs : int
         The number of epochs SGD is run.
-    verbose : bool
+    verbose : boolean
         If true, shows a progress bar via tqdm and some statistics
     out_path: str
         If set, stores a file called epoch_$i.npy with the statistics for epoch $i under the given path.
@@ -104,7 +104,7 @@ class ProxPruningClassifier(PruningClassifier):
 
         assert loss in ["mse","cross-entropy","hinge2"], "Currently only {{mse, cross-entropy, hinge2}} loss is supported"
         assert ensemble_regularizer is None or ensemble_regularizer in ["none","L0", "L1", "hard-L1"], "Currently only {{none,L0, L1, hard-L1}} the ensemble regularizer is supported"
-        assert l_tree_reg >= 0, "l_reg must be greate or equal to 0"
+        assert l_tree_reg >= 0, "l_reg must be greater or equal to 0"
         assert tree_regularizer is None or tree_regularizer in ["node"], "Currently only {{none, node}} regularizer is supported for tree the regularizer."
         assert batch_size >= 1, "batch_size must be at-least 1"
         assert epochs >= 1, "epochs must be at-least 1"

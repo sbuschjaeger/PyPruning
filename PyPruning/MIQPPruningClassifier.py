@@ -11,7 +11,7 @@ from .RankPruningClassifier import *
 
 def combined(i, j, ensemble_proba, target, weights = [1.0 / 5.0 for _ in range(5)]):
     '''
-    Computes a (weighted) combination of 5 differents measures for a pair of classifiers. The original paper also optimizes the weights of this combination using an evolutionary approach and cross-validation. Per default, we use equal weights here. If you want to change this value you can use `partial` to set the weights to different values (e.g. [0.1, 0.1, 0.1, 0.5, 0.2]) before creating a new MIQPPruningClassifier:
+    Computes a (weighted) combination of 5 different measures for a pair of classifiers. The original paper also optimizes the weights of this combination using an evolutionary approach and cross-validation. Per default, we use equal weights here. If you want to change this value you can use `partial` to set the weights to different values (e.g. [0.1, 0.1, 0.1, 0.5, 0.2]) before creating a new MIQPPruningClassifier:
 
     ```Python
         from functools import partial
