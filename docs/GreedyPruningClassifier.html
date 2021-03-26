@@ -27,15 +27,15 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">import numpy as np
+<pre><code class="python">from functools import partial
+import numpy as np
 from sklearn.metrics import roc_auc_score
 
 from joblib import Parallel,delayed
 from sklearn.utils import axis0_safe_slice
 
 from .PruningClassifier import PruningClassifier
-
-def error(i, ensemble_proba, sub_proba, target):
+def error(i, ensemble_proba, selected_models, target):
     &#39;&#39;&#39; 
     Computes the error of the sub-ensemble including the i-th classifier.  
 
@@ -44,14 +44,16 @@ def error(i, ensemble_proba, sub_proba, target):
         Margineantu, D., &amp; Dietterich, T. G. (1997). Pruning Adaptive Boosting. Proceedings of the Fourteenth International Conference on Machine Learning, 211–218. https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.38.7017&amp;rep=rep1&amp;type=pdf
     &#39;&#39;&#39;
     iproba = ensemble_proba[i,:,:]
+    sub_proba = ensemble_proba[selected_models, :, :]
     pred = 1.0 / (1 + len(sub_proba)) * (sub_proba.sum(axis=0) + iproba)
     return (pred.argmax(axis=1) != target).mean() 
 
-def neg_auc(i, ensemble_proba, sub_proba, target):
+def neg_auc(i, ensemble_proba, selected_models, target):
     &#39;&#39;&#39; 
     Compute the (negative) roc-auc score of the sub-ensemble including the i-th classifier.  
     &#39;&#39;&#39;
     iproba = ensemble_proba[i,:,:]
+    sub_proba = ensemble_proba[selected_models, :, :]
     pred = 1.0 / (1 + len(sub_proba)) * (sub_proba.sum(axis=0) + iproba)
 
     if(sub_proba.shape[1] == 2):
@@ -60,7 +62,7 @@ def neg_auc(i, ensemble_proba, sub_proba, target):
     else:
         return - 1.0 * roc_auc_score(target, pred, multi_class=&#34;ovr&#34;)
 
-def complementariness(i, ensemble_proba, sub_proba, target):
+def complementariness(i, ensemble_proba, selected_models, target):
     &#39;&#39;&#39;
     Computes the complementariness of the i-th classifier wrt. to the sub-ensemble. A classifier is complementary to the sub-ensemble if it disagrees with the ensemble, but is correct (and the ensemble is wrong)
 
@@ -68,18 +70,29 @@ def complementariness(i, ensemble_proba, sub_proba, target):
         Martínez-Muñoz, G., &amp; Suárez, A. (2004). Aggregation ordering in bagging. Proceedings of the IASTED International Conference. Applied Informatics, 258–263. Retrieved from https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.59.2035&amp;rep=rep1&amp;type=pdf
     &#39;&#39;&#39;
     iproba = ensemble_proba[i,:,:]
+    sub_proba = ensemble_proba[selected_models, :, :]
+
     b1 = (iproba.argmax(axis=1) == target)
     b2 = (sub_proba.sum(axis=0).argmax(axis=1) != target)
     return - 1.0 * np.sum(np.logical_and(b1, b2))
 
-def margin_distance(i, ensemble_proba, sub_proba, target):
+def margin_distance(i, ensemble_proba, selected_models, target, p_range = [0, 0.25]):
     &#39;&#39;&#39;
     Computes how including the i-th classifiers into the sub-ensemble changes its prediction towards a reference vector.
+
+    Note: The paper randomly samples p from (0, 0.25) which we also use as a default here. If you want to change these values you can use `partial` to set them  before creating a new GreedyPruningClassifier:
+
+    ```Python
+        from functools import partial
+        m_function = partial(margin_distance, p_range = [0, 0.75])
+        pruner = GreedyPruningClassifier(n_estimators = 10, metric = m_function, n_jobs = 8)
+    ```
 
     Reference:
         Martínez-Muñoz, G., &amp; Suárez, A. (2004). Aggregation ordering in bagging. Proceedings of the IASTED International Conference. Applied Informatics, 258–263. Retrieved from https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.59.2035&amp;rep=rep1&amp;type=pdf
     &#39;&#39;&#39;
     iproba = ensemble_proba[i,:,:]
+    sub_proba = ensemble_proba[selected_models, :, :]
     c_refs = []
 
     for sub in sub_proba:
@@ -88,26 +101,42 @@ def margin_distance(i, ensemble_proba, sub_proba, target):
     c_refs.append(2 * (iproba.argmax(axis=1) == target) - 1.0)
     c_refs = np.mean(c_refs)
 
-    p = np.random.uniform(0, 0.25, len(target))
+    p = np.random.uniform(p_range[0], p_range[1], len(target))
     return np.mean((p - c_refs)**2)
 
-def drep(i, ensemble_proba, sub_proba, target):
+def drep(i, ensemble_proba, selected_models, target, rho = 0.25):
     &#39;&#39;&#39;
     A multi-class version of a PAC-style bound which includes the diversity of the sub-ensemble. This basically counts the number of different predictions between the i-th classifier and the sub-ensemble.
     
+    Note: The paper suggest to use \( \\rho \\in \\{0.2, 0.25, \dots, 0.5 \\} \). Our default is 0.25 here because it just works well. 
+
     Reference:
         Li, N., Yu, Y., &amp; Zhou, Z.-H. (2012). Diversity Regularized Ensemble Pruning. In P. A. Flach, T. De Bie, &amp; N. Cristianini (Eds.), Machine Learning and Knowledge Discovery in Databases (pp. 330–345). Berlin, Heidelberg: Springer Berlin Heidelberg. https://link.springer.com/content/pdf/10.1007%2F978-3-642-33460-3.pdf
     &#39;&#39;&#39;
-    iproba = ensemble_proba[i,:,:].argmax(axis=1)
     
-    if len(sub_proba) == 0:
+    if len(selected_models) == 0:
+        iproba = ensemble_proba[i,:,:].argmax(axis=1)
         return (iproba != target).mean()
     else:
-        sproba = sub_proba.mean(axis=0).argmax(axis=1)
+        sub_ensemble = ensemble_proba[selected_models, :, :]
+        sproba = sub_ensemble.mean(axis=0).argmax(axis=1)
+        diffs = []
+        for j in range(ensemble_proba.shape[0]):
+            if j not in selected_models:
+                jproba = ensemble_proba[j,:,:].argmax(axis=1)
+                d = (jproba == sproba).sum()
+                diffs.append( (j,d) )
 
-        # This implements a multi-class version of eq (9) from the paper. Originally, the paper considers binary classification problems with labels {-1,1}. It counts the number of the same predictions as the difference between two classifier. 
-        diff = (iproba == sproba).sum()
-        return diff
+        gamma = sorted(diffs, key = lambda e: e[1], reverse=False)
+        K = int(np.ceil(rho * len(gamma)))
+        topidx = [idx for idx in gamma[:K]]
+
+        if i in topidx:
+            iproba = ensemble_proba[i,:,:].argmax(axis=1)
+            pred = 1.0 / (1 + len(sub_ensemble)) * (sub_ensemble.sum(axis=0) + iproba)
+            return (pred.argmax(axis=1) != target).mean() 
+        else:
+            return np.inf
 
 class GreedyPruningClassifier(PruningClassifier):
     &#39;&#39;&#39; Greedy / Ordering-based pruning. 
@@ -122,14 +151,15 @@ class GreedyPruningClassifier(PruningClassifier):
 
     - `i` (int): The classifier which should be rated
     - `ensemble_proba` (A (M, N, C) matrix ): All N predictions of all M classifier in the entire ensemble for all C classes
-    - `sub_proba` (A (M, N, C) matrix ): All N predictions of all K classifier in the entire sub-ensemble for all C classes
+    - `selected_models` (list of ints): All models which are selected so far
     - `target` (list / array): A list / array of class targets.
 
     A simple loss function which minimizes the overall sub-ensembles error would be
 
     ```Python
-        def error(i, ensemble_proba, sub_proba, target):
+        def error(i, ensemble_proba, selected_models, target):
             iproba = ensemble_proba[i,:,:]
+            sub_proba = ensemble_proba[selected_models, :, :]
             pred = 1.0 / (1 + len(sub_proba)) * (sub_proba.sum(axis=0) + iproba)
             return (pred.argmax(axis=1) != target).mean() 
     ```
@@ -143,18 +173,37 @@ class GreedyPruningClassifier(PruningClassifier):
     n_jobs : int, default is 8
         The number of threads used for computing the individual metrics for each classifier.
     &#39;&#39;&#39;
-    def __init__(self, n_estimators = 5, metric = error, n_jobs = 8):
+    def __init__(self, n_estimators = 5, metric = error, n_jobs = 8, **kwargs):
+        &#34;&#34;&#34;
+        Creates a new GreedyPruningClassifier.
+
+        Parameters
+        ----------
+
+        n_estimators : int, default is 5
+            The number of estimators which should be selected.
+        metric : function, default is error
+            A function that assigns a score (smaller is better) to each classifier which is then used for selecting the next classifier in each round
+        n_jobs : int, default is 8
+            The number of threads used for computing the individual metrics for each classifier.
+        kwargs : 
+            Any additional kwargs are directly supplied to the metric function via a partial
+        &#34;&#34;&#34;
         super().__init__()
 
         assert metric is not None, &#34;You did not provide a valid metric for model selection. Please do so&#34;
         self.n_estimators = n_estimators
         self.n_jobs = n_jobs
-        self.metric = metric
+
+        if len(kwargs) &gt; 0:
+            self.metric = partial(metric, **kwargs)
+        else:
+            self.metric = metric
 
     # I assume that Parallel keeps the order of evaluations regardless of its backend (see eg. https://stackoverflow.com/questions/56659294/does-joblib-parallel-keep-the-original-order-of-data-passed)
     # But for safty measures we also return the index of the current model
-    def _metric(self, i, ensemble_proba, sub_proba, target):
-        return (i, self.metric(i, ensemble_proba, sub_proba, target))
+    def _metric(self, i, ensemble_proba, selected_models, target):
+        return (i, self.metric(i, ensemble_proba, selected_models, target))
 
     def prune_(self, proba, target, data = None):
         n_received = len(proba)
@@ -166,7 +215,7 @@ class GreedyPruningClassifier(PruningClassifier):
 
         for _ in range(self.n_estimators):
             scores = Parallel(n_jobs=self.n_jobs, backend=&#34;threading&#34;)(
-                delayed(self._metric) ( i, proba, proba[selected_models, :, :], target) for i in not_seleced_models
+                delayed(self._metric) ( i, proba, selected_models, target) for i in not_seleced_models
             )
 
             best_model, _ = min(scores, key = lambda e: e[1])
@@ -184,7 +233,7 @@ class GreedyPruningClassifier(PruningClassifier):
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="PyPruning.GreedyPruningClassifier.complementariness"><code class="name flex">
-<span>def <span class="ident">complementariness</span></span>(<span>i, ensemble_proba, sub_proba, target)</span>
+<span>def <span class="ident">complementariness</span></span>(<span>i, ensemble_proba, selected_models, target)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Computes the complementariness of the i-th classifier wrt. to the sub-ensemble. A classifier is complementary to the sub-ensemble if it disagrees with the ensemble, but is correct (and the ensemble is wrong)</p>
@@ -194,7 +243,7 @@ class GreedyPruningClassifier(PruningClassifier):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def complementariness(i, ensemble_proba, sub_proba, target):
+<pre><code class="python">def complementariness(i, ensemble_proba, selected_models, target):
     &#39;&#39;&#39;
     Computes the complementariness of the i-th classifier wrt. to the sub-ensemble. A classifier is complementary to the sub-ensemble if it disagrees with the ensemble, but is correct (and the ensemble is wrong)
 
@@ -202,43 +251,62 @@ class GreedyPruningClassifier(PruningClassifier):
         Martínez-Muñoz, G., &amp; Suárez, A. (2004). Aggregation ordering in bagging. Proceedings of the IASTED International Conference. Applied Informatics, 258–263. Retrieved from https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.59.2035&amp;rep=rep1&amp;type=pdf
     &#39;&#39;&#39;
     iproba = ensemble_proba[i,:,:]
+    sub_proba = ensemble_proba[selected_models, :, :]
+
     b1 = (iproba.argmax(axis=1) == target)
     b2 = (sub_proba.sum(axis=0).argmax(axis=1) != target)
     return - 1.0 * np.sum(np.logical_and(b1, b2))</code></pre>
 </details>
 </dd>
 <dt id="PyPruning.GreedyPruningClassifier.drep"><code class="name flex">
-<span>def <span class="ident">drep</span></span>(<span>i, ensemble_proba, sub_proba, target)</span>
+<span>def <span class="ident">drep</span></span>(<span>i, ensemble_proba, selected_models, target, rho=0.25)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A multi-class version of a PAC-style bound which includes the diversity of the sub-ensemble. This basically counts the number of different predictions between the i-th classifier and the sub-ensemble.</p>
+<p>Note: The paper suggest to use <span><span class="MathJax_Preview"> \rho \in \{0.2, 0.25, \dots, 0.5 \} </span><script type="math/tex"> \rho \in \{0.2, 0.25, \dots, 0.5 \} </script></span>. Our default is 0.25 here because it just works well. </p>
 <h2 id="reference">Reference</h2>
 <p>Li, N., Yu, Y., &amp; Zhou, Z.-H. (2012). Diversity Regularized Ensemble Pruning. In P. A. Flach, T. De Bie, &amp; N. Cristianini (Eds.), Machine Learning and Knowledge Discovery in Databases (pp. 330–345). Berlin, Heidelberg: Springer Berlin Heidelberg. <a href="https://link.springer.com/content/pdf/10.1007%2F978-3-642-33460-3.pdf">https://link.springer.com/content/pdf/10.1007%2F978-3-642-33460-3.pdf</a></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def drep(i, ensemble_proba, sub_proba, target):
+<pre><code class="python">def drep(i, ensemble_proba, selected_models, target, rho = 0.25):
     &#39;&#39;&#39;
     A multi-class version of a PAC-style bound which includes the diversity of the sub-ensemble. This basically counts the number of different predictions between the i-th classifier and the sub-ensemble.
     
+    Note: The paper suggest to use \( \\rho \\in \\{0.2, 0.25, \dots, 0.5 \\} \). Our default is 0.25 here because it just works well. 
+
     Reference:
         Li, N., Yu, Y., &amp; Zhou, Z.-H. (2012). Diversity Regularized Ensemble Pruning. In P. A. Flach, T. De Bie, &amp; N. Cristianini (Eds.), Machine Learning and Knowledge Discovery in Databases (pp. 330–345). Berlin, Heidelberg: Springer Berlin Heidelberg. https://link.springer.com/content/pdf/10.1007%2F978-3-642-33460-3.pdf
     &#39;&#39;&#39;
-    iproba = ensemble_proba[i,:,:].argmax(axis=1)
     
-    if len(sub_proba) == 0:
+    if len(selected_models) == 0:
+        iproba = ensemble_proba[i,:,:].argmax(axis=1)
         return (iproba != target).mean()
     else:
-        sproba = sub_proba.mean(axis=0).argmax(axis=1)
+        sub_ensemble = ensemble_proba[selected_models, :, :]
+        sproba = sub_ensemble.mean(axis=0).argmax(axis=1)
+        diffs = []
+        for j in range(ensemble_proba.shape[0]):
+            if j not in selected_models:
+                jproba = ensemble_proba[j,:,:].argmax(axis=1)
+                d = (jproba == sproba).sum()
+                diffs.append( (j,d) )
 
-        # This implements a multi-class version of eq (9) from the paper. Originally, the paper considers binary classification problems with labels {-1,1}. It counts the number of the same predictions as the difference between two classifier. 
-        diff = (iproba == sproba).sum()
-        return diff</code></pre>
+        gamma = sorted(diffs, key = lambda e: e[1], reverse=False)
+        K = int(np.ceil(rho * len(gamma)))
+        topidx = [idx for idx in gamma[:K]]
+
+        if i in topidx:
+            iproba = ensemble_proba[i,:,:].argmax(axis=1)
+            pred = 1.0 / (1 + len(sub_ensemble)) * (sub_ensemble.sum(axis=0) + iproba)
+            return (pred.argmax(axis=1) != target).mean() 
+        else:
+            return np.inf</code></pre>
 </details>
 </dd>
 <dt id="PyPruning.GreedyPruningClassifier.error"><code class="name flex">
-<span>def <span class="ident">error</span></span>(<span>i, ensemble_proba, sub_proba, target)</span>
+<span>def <span class="ident">error</span></span>(<span>i, ensemble_proba, selected_models, target)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Computes the error of the sub-ensemble including the i-th classifier.
@@ -249,7 +317,7 @@ class GreedyPruningClassifier(PruningClassifier):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def error(i, ensemble_proba, sub_proba, target):
+<pre><code class="python">def error(i, ensemble_proba, selected_models, target):
     &#39;&#39;&#39; 
     Computes the error of the sub-ensemble including the i-th classifier.  
 
@@ -258,29 +326,45 @@ class GreedyPruningClassifier(PruningClassifier):
         Margineantu, D., &amp; Dietterich, T. G. (1997). Pruning Adaptive Boosting. Proceedings of the Fourteenth International Conference on Machine Learning, 211–218. https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.38.7017&amp;rep=rep1&amp;type=pdf
     &#39;&#39;&#39;
     iproba = ensemble_proba[i,:,:]
+    sub_proba = ensemble_proba[selected_models, :, :]
     pred = 1.0 / (1 + len(sub_proba)) * (sub_proba.sum(axis=0) + iproba)
     return (pred.argmax(axis=1) != target).mean() </code></pre>
 </details>
 </dd>
 <dt id="PyPruning.GreedyPruningClassifier.margin_distance"><code class="name flex">
-<span>def <span class="ident">margin_distance</span></span>(<span>i, ensemble_proba, sub_proba, target)</span>
+<span>def <span class="ident">margin_distance</span></span>(<span>i, ensemble_proba, selected_models, target, p_range=[0, 0.25])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Computes how including the i-th classifiers into the sub-ensemble changes its prediction towards a reference vector.</p>
+<p>Note: The paper randomly samples p from (0, 0.25) which we also use as a default here. If you want to change these values you can use <code>partial</code> to set them
+before creating a new GreedyPruningClassifier:</p>
+<pre><code class="language-Python">    from functools import partial
+    m_function = partial(margin_distance, p_range = [0, 0.75])
+    pruner = GreedyPruningClassifier(n_estimators = 10, metric = m_function, n_jobs = 8)
+</code></pre>
 <h2 id="reference">Reference</h2>
 <p>Martínez-Muñoz, G., &amp; Suárez, A. (2004). Aggregation ordering in bagging. Proceedings of the IASTED International Conference. Applied Informatics, 258–263. Retrieved from <a href="https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.59.2035&amp;rep=rep1&amp;type=pdf">https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.59.2035&amp;rep=rep1&amp;type=pdf</a></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def margin_distance(i, ensemble_proba, sub_proba, target):
+<pre><code class="python">def margin_distance(i, ensemble_proba, selected_models, target, p_range = [0, 0.25]):
     &#39;&#39;&#39;
     Computes how including the i-th classifiers into the sub-ensemble changes its prediction towards a reference vector.
+
+    Note: The paper randomly samples p from (0, 0.25) which we also use as a default here. If you want to change these values you can use `partial` to set them  before creating a new GreedyPruningClassifier:
+
+    ```Python
+        from functools import partial
+        m_function = partial(margin_distance, p_range = [0, 0.75])
+        pruner = GreedyPruningClassifier(n_estimators = 10, metric = m_function, n_jobs = 8)
+    ```
 
     Reference:
         Martínez-Muñoz, G., &amp; Suárez, A. (2004). Aggregation ordering in bagging. Proceedings of the IASTED International Conference. Applied Informatics, 258–263. Retrieved from https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.59.2035&amp;rep=rep1&amp;type=pdf
     &#39;&#39;&#39;
     iproba = ensemble_proba[i,:,:]
+    sub_proba = ensemble_proba[selected_models, :, :]
     c_refs = []
 
     for sub in sub_proba:
@@ -289,12 +373,12 @@ class GreedyPruningClassifier(PruningClassifier):
     c_refs.append(2 * (iproba.argmax(axis=1) == target) - 1.0)
     c_refs = np.mean(c_refs)
 
-    p = np.random.uniform(0, 0.25, len(target))
+    p = np.random.uniform(p_range[0], p_range[1], len(target))
     return np.mean((p - c_refs)**2)</code></pre>
 </details>
 </dd>
 <dt id="PyPruning.GreedyPruningClassifier.neg_auc"><code class="name flex">
-<span>def <span class="ident">neg_auc</span></span>(<span>i, ensemble_proba, sub_proba, target)</span>
+<span>def <span class="ident">neg_auc</span></span>(<span>i, ensemble_proba, selected_models, target)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Compute the (negative) roc-auc score of the sub-ensemble including the i-th classifier.</p></div>
@@ -302,11 +386,12 @@ class GreedyPruningClassifier(PruningClassifier):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def neg_auc(i, ensemble_proba, sub_proba, target):
+<pre><code class="python">def neg_auc(i, ensemble_proba, selected_models, target):
     &#39;&#39;&#39; 
     Compute the (negative) roc-auc score of the sub-ensemble including the i-th classifier.  
     &#39;&#39;&#39;
     iproba = ensemble_proba[i,:,:]
+    sub_proba = ensemble_proba[selected_models, :, :]
     pred = 1.0 / (1 + len(sub_proba)) * (sub_proba.sum(axis=0) + iproba)
 
     if(sub_proba.shape[1] == 2):
@@ -323,7 +408,7 @@ class GreedyPruningClassifier(PruningClassifier):
 <dl>
 <dt id="PyPruning.GreedyPruningClassifier.GreedyPruningClassifier"><code class="flex name class">
 <span>class <span class="ident">GreedyPruningClassifier</span></span>
-<span>(</span><span>n_estimators=5, metric=&lt;function error&gt;, n_jobs=8)</span>
+<span>(</span><span>n_estimators=5, metric=&lt;function error&gt;, n_jobs=8, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Greedy / Ordering-based pruning. </p>
@@ -337,12 +422,13 @@ class GreedyPruningClassifier(PruningClassifier):
 <ul>
 <li><code>i</code> (int): The classifier which should be rated</li>
 <li><code>ensemble_proba</code> (A (M, N, C) matrix ): All N predictions of all M classifier in the entire ensemble for all C classes</li>
-<li><code>sub_proba</code> (A (M, N, C) matrix ): All N predictions of all K classifier in the entire sub-ensemble for all C classes</li>
+<li><code>selected_models</code> (list of ints): All models which are selected so far</li>
 <li><code>target</code> (list / array): A list / array of class targets.</li>
 </ul>
 <p>A simple loss function which minimizes the overall sub-ensembles error would be</p>
-<pre><code class="language-Python">    def error(i, ensemble_proba, sub_proba, target):
+<pre><code class="language-Python">    def error(i, ensemble_proba, selected_models, target):
         iproba = ensemble_proba[i,:,:]
+        sub_proba = ensemble_proba[selected_models, :, :]
         pred = 1.0 / (1 + len(sub_proba)) * (sub_proba.sum(axis=0) + iproba)
         return (pred.argmax(axis=1) != target).mean() 
 </code></pre>
@@ -354,6 +440,18 @@ class GreedyPruningClassifier(PruningClassifier):
 <dd>A function that assigns a score (smaller is better) to each classifier which is then used for selecting the next classifier in each round</dd>
 <dt><strong><code>n_jobs</code></strong> :&ensp;<code>int</code>, default <code>is 8</code></dt>
 <dd>The number of threads used for computing the individual metrics for each classifier.</dd>
+</dl>
+<p>Creates a new GreedyPruningClassifier.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>n_estimators</code></strong> :&ensp;<code>int</code>, default <code>is 5</code></dt>
+<dd>The number of estimators which should be selected.</dd>
+<dt><strong><code>metric</code></strong> :&ensp;<code>function</code>, default <code>is <a title="PyPruning.GreedyPruningClassifier.error" href="#PyPruning.GreedyPruningClassifier.error">error()</a></code></dt>
+<dd>A function that assigns a score (smaller is better) to each classifier which is then used for selecting the next classifier in each round</dd>
+<dt><strong><code>n_jobs</code></strong> :&ensp;<code>int</code>, default <code>is 8</code></dt>
+<dd>The number of threads used for computing the individual metrics for each classifier.</dd>
+<dt><strong><code>kwargs</code></strong></dt>
+<dd>Any additional kwargs are directly supplied to the metric function via a partial</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -372,14 +470,15 @@ class GreedyPruningClassifier(PruningClassifier):
 
     - `i` (int): The classifier which should be rated
     - `ensemble_proba` (A (M, N, C) matrix ): All N predictions of all M classifier in the entire ensemble for all C classes
-    - `sub_proba` (A (M, N, C) matrix ): All N predictions of all K classifier in the entire sub-ensemble for all C classes
+    - `selected_models` (list of ints): All models which are selected so far
     - `target` (list / array): A list / array of class targets.
 
     A simple loss function which minimizes the overall sub-ensembles error would be
 
     ```Python
-        def error(i, ensemble_proba, sub_proba, target):
+        def error(i, ensemble_proba, selected_models, target):
             iproba = ensemble_proba[i,:,:]
+            sub_proba = ensemble_proba[selected_models, :, :]
             pred = 1.0 / (1 + len(sub_proba)) * (sub_proba.sum(axis=0) + iproba)
             return (pred.argmax(axis=1) != target).mean() 
     ```
@@ -393,18 +492,37 @@ class GreedyPruningClassifier(PruningClassifier):
     n_jobs : int, default is 8
         The number of threads used for computing the individual metrics for each classifier.
     &#39;&#39;&#39;
-    def __init__(self, n_estimators = 5, metric = error, n_jobs = 8):
+    def __init__(self, n_estimators = 5, metric = error, n_jobs = 8, **kwargs):
+        &#34;&#34;&#34;
+        Creates a new GreedyPruningClassifier.
+
+        Parameters
+        ----------
+
+        n_estimators : int, default is 5
+            The number of estimators which should be selected.
+        metric : function, default is error
+            A function that assigns a score (smaller is better) to each classifier which is then used for selecting the next classifier in each round
+        n_jobs : int, default is 8
+            The number of threads used for computing the individual metrics for each classifier.
+        kwargs : 
+            Any additional kwargs are directly supplied to the metric function via a partial
+        &#34;&#34;&#34;
         super().__init__()
 
         assert metric is not None, &#34;You did not provide a valid metric for model selection. Please do so&#34;
         self.n_estimators = n_estimators
         self.n_jobs = n_jobs
-        self.metric = metric
+
+        if len(kwargs) &gt; 0:
+            self.metric = partial(metric, **kwargs)
+        else:
+            self.metric = metric
 
     # I assume that Parallel keeps the order of evaluations regardless of its backend (see eg. https://stackoverflow.com/questions/56659294/does-joblib-parallel-keep-the-original-order-of-data-passed)
     # But for safty measures we also return the index of the current model
-    def _metric(self, i, ensemble_proba, sub_proba, target):
-        return (i, self.metric(i, ensemble_proba, sub_proba, target))
+    def _metric(self, i, ensemble_proba, selected_models, target):
+        return (i, self.metric(i, ensemble_proba, selected_models, target))
 
     def prune_(self, proba, target, data = None):
         n_received = len(proba)
@@ -416,7 +534,7 @@ class GreedyPruningClassifier(PruningClassifier):
 
         for _ in range(self.n_estimators):
             scores = Parallel(n_jobs=self.n_jobs, backend=&#34;threading&#34;)(
-                delayed(self._metric) ( i, proba, proba[selected_models, :, :], target) for i in not_seleced_models
+                delayed(self._metric) ( i, proba, selected_models, target) for i in not_seleced_models
             )
 
             best_model, _ = min(scores, key = lambda e: e[1])
@@ -446,7 +564,6 @@ class GreedyPruningClassifier(PruningClassifier):
 </section>
 </article>
 <nav id="sidebar">
-<img src="../../images/ls8.png" alt="LS8">
 <h1>Index</h1>
 <div class="toc">
 <ul></ul>
@@ -477,7 +594,7 @@ class GreedyPruningClassifier(PruningClassifier):
 </nav>
 </main>
 <footer id="footer">
-The software is written and maintained by <a href="https://sbuschjaeger.github.io/">Sebastian Buschjäger</a> as part of his work at the <a href="https://www-ai.cs.tu-dortmund.de">Chair for Artificial Intelligence</a> at the TU Dortmund University and the <a href="https://sfb876.tu-dortmund.de">Collaborative Research Center 876, project A1</a>. If you have any question feel free to contact me under <a href="mailto:sebstian.buschjaeger@tu-dortmund.de">sebstian.buschjaeger@tu-dortmund.de</a>.
+Written by <a href="https://sbuschjaeger.github.io/">Sebastian Buschjäger</a> as part of the <a href="https://sfb876.tu-dortmund.de">Collaborative Research Center 876, project A1</a> at the <a href="https://www-ai.cs.tu-dortmund.de">Chair for Artificial Intelligence</a>, TU Dortmund University. Feel free to contact me: <a href="mailto:sebstian.buschjaeger@tu-dortmund.de">sebstian.buschjaeger@tu-dortmund.de</a>.
 <p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>

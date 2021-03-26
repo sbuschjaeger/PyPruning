@@ -190,7 +190,21 @@ class RankPruningClassifier(PruningClassifier):
         The number of threads used for computing the individual metrics for each classifier.
     '''
     def __init__(self, n_estimators = 5, metric = individual_error, n_jobs = 8, **kwargs):
+        """
+        Creates a new RankPruningClassifier.
 
+        Parameters
+        ----------
+
+        n_estimators : int, default is 5
+            The number of estimators which should be selected.
+        metric : function, default is individual_error 
+            A function that assigns a score to each classifier which is then used for sorting
+        n_jobs : int, default is 8
+            The number of threads used for computing the individual metrics for each classifier.
+        kwargs : 
+            Any additional kwargs are directly supplied to the metric function via a partial
+        """
         super().__init__()
 
         assert metric is not None, "You must provide a valid metric!"

@@ -15,6 +15,17 @@ class RandomPruningClassifier(PruningClassifier):
     '''
 
     def __init__(self, n_estimators = 5, seed = None):
+        """
+        Creates a new RandomPruningClassifier.
+
+        Parameters
+        ----------
+
+        n_estimators : int, default is 5
+            The number of estimators which should be selected.
+        seed : int, optional, default is None
+            The random seed for the random selection
+        """
         super().__init__()
         self.n_estimators = n_estimators
         self.seed = seed

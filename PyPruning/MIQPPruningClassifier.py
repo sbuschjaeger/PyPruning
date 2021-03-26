@@ -191,7 +191,7 @@ class MIQPPruningClassifier(PruningClassifier):
     - `ensemble_proba` (A (M, N, C) matrix ): All N predictions of all M classifier in the entire ensemble for all C classes
     - `target` (list / array): A list / array of class targets.
     
-    If you set `alpha = 0` or choose the pairwise metric that simply returns 0 a MIQPPruningClassifier should produce the same solution as a RankPruningClassifier does.
+    If you set `alpha = 0` or choose the pairwise metric that simply returns 0 a MIQPPruningClassifier should produce the same solution as a RankPruningClassifier does. 
 
     **Important:** All metrics are _minimized_. If you implement your own metric make sure that it assigns smaller values to better classifiers.
     
@@ -216,6 +216,29 @@ class MIQPPruningClassifier(PruningClassifier):
     '''
 
     def __init__(self, n_estimators = 5, single_metric = None, pairwise_metric = combined_error, alpha = 1, eps = 1e-2, verbose = False, n_jobs = 8, **kwargs):
+        """ 
+        Creates a new MIQPPruningClassifier.
+
+        Parameters
+        ----------
+
+        n_estimators : int, default is 5
+            The number of estimators which should be selected.
+        single_metric : function, default is None
+            A function that assigns a value to each classifier which forms the q vector
+        pairwise_metric : function, default is combined_error
+            A function that assigns a value to each pair of classifiers which forms the P matrix
+        alpha : float, must be in [0,1]
+            The trade-off between the single and pairwise metric. alpha = 0 only considers the single_metric, whereas alpha = 1 only considers the pairwise metric 
+        eps : float, default 1e-2
+            Sometimes and especially for larger P matrices there can be numerical inaccuries. In this case, the resulting problem might become non-convex so that the MQIP solver cannot solve the problem anymore. For a better numerical stability the eps value can be added to the diagonal of the P matrix. 
+        verbose : boolean, default is False
+            If true, more information from the MQIP solver is printed. 
+        n_jobs : int, default is 8
+            The number of threads used for computing the metrics. This does not have any effect on the number of threads used by the MQIP solver.
+        kwargs : 
+            Any additional kwargs are directly supplied to single_metric function and pairwise_metric function via partials
+        """
         super().__init__()
         
         assert 0 <= alpha <= 1, "l_reg should be from [0,1], but you supplied {}".format(alpha)

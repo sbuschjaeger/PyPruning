@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.2" />
-<title>PyPruning.RandomPruningClassifier API documentation</title>
+<title>PyPruning.tests API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -20,147 +20,24 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>PyPruning.RandomPruningClassifier</code></h1>
+<h1 class="title">Namespace <code>PyPruning.tests</code></h1>
 </header>
 <section id="section-intro">
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">import numpy as np
-
-from .PruningClassifier import PruningClassifier
-
-class RandomPruningClassifier(PruningClassifier):
-    &#39;&#39;&#39; Random pruning.
-    This pruning method implements a random pruning which randomly selects n_estimators from the original ensemble and assigns equal weights to each of the classifiers.
-
-    Attributes
-    ----------
-    n_estimators : int, default is 5
-        The number of estimators which should be selected.
-    seed : int, optional, default is None
-        The random seed for the random selection
-    &#39;&#39;&#39;
-
-    def __init__(self, n_estimators = 5, seed = None):
-        &#34;&#34;&#34;
-        Creates a new RandomPruningClassifier.
-
-        Parameters
-        ----------
-
-        n_estimators : int, default is 5
-            The number of estimators which should be selected.
-        seed : int, optional, default is None
-            The random seed for the random selection
-        &#34;&#34;&#34;
-        super().__init__()
-        self.n_estimators = n_estimators
-        self.seed = seed
-
-    def prune_(self, proba, target, data = None):
-        # TODO  It seems that numpy changed the way it handles randomization. We should maybe adapt their new interface
-        np.random.seed(self.seed)
-        n_received = len(proba)
-        if self.n_estimators &gt;= n_received:
-            return range(0, n_received), [1.0 / n_received for _ in range(n_received)]
-        else:
-            return np.random.choice(range(0, n_received),size=self.n_estimators), [1.0 / self.n_estimators for _ in range(self.n_estimators)]
-
-        </code></pre>
-</details>
 </section>
 <section>
-</section>
-<section>
-</section>
-<section>
-</section>
-<section>
-<h2 class="section-title" id="header-classes">Classes</h2>
+<h2 class="section-title" id="header-submodules">Sub-modules</h2>
 <dl>
-<dt id="PyPruning.RandomPruningClassifier.RandomPruningClassifier"><code class="flex name class">
-<span>class <span class="ident">RandomPruningClassifier</span></span>
-<span>(</span><span>n_estimators=5, seed=None)</span>
-</code></dt>
+<dt><code class="name"><a title="PyPruning.tests.run" href="run.html">PyPruning.tests.run</a></code></dt>
 <dd>
-<div class="desc"><p>Random pruning.
-This pruning method implements a random pruning which randomly selects n_estimators from the original ensemble and assigns equal weights to each of the classifiers.</p>
-<h2 id="attributes">Attributes</h2>
-<dl>
-<dt><strong><code>n_estimators</code></strong> :&ensp;<code>int</code>, default <code>is 5</code></dt>
-<dd>The number of estimators which should be selected.</dd>
-<dt><strong><code>seed</code></strong> :&ensp;<code>int</code>, optional, default <code>is None</code></dt>
-<dd>The random seed for the random selection</dd>
-</dl>
-<p>Creates a new RandomPruningClassifier.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>n_estimators</code></strong> :&ensp;<code>int</code>, default <code>is 5</code></dt>
-<dd>The number of estimators which should be selected.</dd>
-<dt><strong><code>seed</code></strong> :&ensp;<code>int</code>, optional, default <code>is None</code></dt>
-<dd>The random seed for the random selection</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class RandomPruningClassifier(PruningClassifier):
-    &#39;&#39;&#39; Random pruning.
-    This pruning method implements a random pruning which randomly selects n_estimators from the original ensemble and assigns equal weights to each of the classifiers.
-
-    Attributes
-    ----------
-    n_estimators : int, default is 5
-        The number of estimators which should be selected.
-    seed : int, optional, default is None
-        The random seed for the random selection
-    &#39;&#39;&#39;
-
-    def __init__(self, n_estimators = 5, seed = None):
-        &#34;&#34;&#34;
-        Creates a new RandomPruningClassifier.
-
-        Parameters
-        ----------
-
-        n_estimators : int, default is 5
-            The number of estimators which should be selected.
-        seed : int, optional, default is None
-            The random seed for the random selection
-        &#34;&#34;&#34;
-        super().__init__()
-        self.n_estimators = n_estimators
-        self.seed = seed
-
-    def prune_(self, proba, target, data = None):
-        # TODO  It seems that numpy changed the way it handles randomization. We should maybe adapt their new interface
-        np.random.seed(self.seed)
-        n_received = len(proba)
-        if self.n_estimators &gt;= n_received:
-            return range(0, n_received), [1.0 / n_received for _ in range(n_received)]
-        else:
-            return np.random.choice(range(0, n_received),size=self.n_estimators), [1.0 / self.n_estimators for _ in range(self.n_estimators)]</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li><a title="PyPruning.PruningClassifier.PruningClassifier" href="PruningClassifier.html#PyPruning.PruningClassifier.PruningClassifier">PruningClassifier</a></li>
-<li>abc.ABC</li>
-</ul>
-<h3>Inherited members</h3>
-<ul class="hlist">
-<li><code><b><a title="PyPruning.PruningClassifier.PruningClassifier" href="PruningClassifier.html#PyPruning.PruningClassifier.PruningClassifier">PruningClassifier</a></b></code>:
-<ul class="hlist">
-<li><code><a title="PyPruning.PruningClassifier.PruningClassifier.predict" href="PruningClassifier.html#PyPruning.PruningClassifier.PruningClassifier.predict">predict</a></code></li>
-<li><code><a title="PyPruning.PruningClassifier.PruningClassifier.predict_proba" href="PruningClassifier.html#PyPruning.PruningClassifier.PruningClassifier.predict_proba">predict_proba</a></code></li>
-<li><code><a title="PyPruning.PruningClassifier.PruningClassifier.prune" href="PruningClassifier.html#PyPruning.PruningClassifier.PruningClassifier.prune">prune</a></code></li>
-<li><code><a title="PyPruning.PruningClassifier.PruningClassifier.prune_" href="PruningClassifier.html#PyPruning.PruningClassifier.PruningClassifier.prune_">prune_</a></code></li>
-</ul>
-</li>
-</ul>
+<div class="desc"></div>
 </dd>
 </dl>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
 </section>
 </article>
 <nav id="sidebar">
@@ -171,14 +48,12 @@ This pruning method implements a random pruning which randomly selects n_estimat
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="PyPruning" href="index.html">PyPruning</a></code></li>
+<li><code><a title="PyPruning" href="../index.html">PyPruning</a></code></li>
 </ul>
 </li>
-<li><h3><a href="#header-classes">Classes</a></h3>
+<li><h3><a href="#header-submodules">Sub-modules</a></h3>
 <ul>
-<li>
-<h4><code><a title="PyPruning.RandomPruningClassifier.RandomPruningClassifier" href="#PyPruning.RandomPruningClassifier.RandomPruningClassifier">RandomPruningClassifier</a></code></h4>
-</li>
+<li><code><a title="PyPruning.tests.run" href="run.html">PyPruning.tests.run</a></code></li>
 </ul>
 </li>
 </ul>

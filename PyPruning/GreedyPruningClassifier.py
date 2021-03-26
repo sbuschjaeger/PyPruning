@@ -145,6 +145,21 @@ class GreedyPruningClassifier(PruningClassifier):
         The number of threads used for computing the individual metrics for each classifier.
     '''
     def __init__(self, n_estimators = 5, metric = error, n_jobs = 8, **kwargs):
+        """
+        Creates a new GreedyPruningClassifier.
+
+        Parameters
+        ----------
+
+        n_estimators : int, default is 5
+            The number of estimators which should be selected.
+        metric : function, default is error
+            A function that assigns a score (smaller is better) to each classifier which is then used for selecting the next classifier in each round
+        n_jobs : int, default is 8
+            The number of threads used for computing the individual metrics for each classifier.
+        kwargs : 
+            Any additional kwargs are directly supplied to the metric function via a partial
+        """
         super().__init__()
 
         assert metric is not None, "You did not provide a valid metric for model selection. Please do so"
