@@ -1,3 +1,4 @@
+from functools import partial
 import numpy as np
 from sklearn import metrics
 import cvxpy as cp
@@ -214,15 +215,7 @@ class MIQPPruningClassifier(PruningClassifier):
         The number of threads used for computing the metrics. This does not have any effect on the number of threads used by the MQIP solver.
     '''
 
-    def __init__(self, 
-        n_estimators = 5, 
-        single_metric = None,
-        pairwise_metric = combined_error, 
-        alpha = 1,
-        eps = 1e-2,
-        verbose = False,
-        n_jobs = 8):
-        
+    def __init__(self, n_estimators = 5, single_metric = None, pairwise_metric = combined_error, alpha = 1, eps = 1e-2, verbose = False, n_jobs = 8, **kwargs):
         super().__init__()
         
         assert 0 <= alpha <= 1, "l_reg should be from [0,1], but you supplied {}".format(alpha)
@@ -240,8 +233,14 @@ class MIQPPruningClassifier(PruningClassifier):
 
         self.n_estimators = n_estimators
         self.n_jobs = n_jobs
-        self.single_metric = single_metric
-        self.pairwise_metric = pairwise_metric
+
+        if len(kwargs) > 0:
+            self.single_metric = partial(single_metric, **kwargs)
+            self.pairwise_metric = partial(pairwise_metric, **kwargs)
+        else:    
+            self.single_metric = single_metric
+            self.pairwise_metric = pairwise_metric
+        
         self.alpha = alpha
         self.verbose = verbose
         self.eps = eps

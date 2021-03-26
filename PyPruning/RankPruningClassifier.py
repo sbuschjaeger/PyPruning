@@ -1,3 +1,4 @@
+from functools import partial
 import numpy as np
 
 from sklearn.metrics import roc_auc_score, cohen_kappa_score
@@ -188,17 +189,18 @@ class RankPruningClassifier(PruningClassifier):
     n_jobs : int, default is 8
         The number of threads used for computing the individual metrics for each classifier.
     '''
-    def __init__(self, 
-        n_estimators = 5, 
-        metric = individual_error,
-        n_jobs = 8):
+    def __init__(self, n_estimators = 5, metric = individual_error, n_jobs = 8, **kwargs):
 
         super().__init__()
 
         assert metric is not None, "You must provide a valid metric!"
         self.n_estimators = n_estimators
         self.n_jobs = n_jobs
-        self.metric = metric
+
+        if len(kwargs) > 0:
+            self.metric = partial(metric, **kwargs)
+        else:
+            self.metric = metric
 
     def prune_(self, proba, target, data = None):
         n_received = len(proba)
