@@ -49,28 +49,28 @@ class ProxPruningClassifier(PruningClassifier):
     """ (Heterogenous) Pruning via Proximal Gradient Descent
     
     This pruning method directly minimizes
+    $$
+        \\arg\\min_w L \\left(\sum_{i=1}^M w_i h_i(x), y\\right) + \\lambda \\sum_{i=1}^K w_i R(h_i) 
+    $$
+    via (stochastic) proximal gradient descent. Currently the `{mse, cross-entropy, hinge2}` are supported. In addition to the loss functions two types of regularizer can be chosen:
 
-        min_w L(\sum_{i=1}^M w_i h_i(x), y) + \lambda \sum_{i=1}^K w_i R(h_i) 
-
-    via (stochastic) proximal gradient descent. Currently the means-squared eror, the cross-entropy loss and the squared hinge loss are supported. In addition to the loss functions two types of regularizer can be chosen:
-
-         - `ensemble_regularizer`: This regularizer tries to remove as many members as possible from the ensemble as possible. If you want to select exactly K elements you can choose the `hard-L0` constraint. Otherwise "soft variations" of this in the form of L0 and L1 regularization are also available.
-         - `tree_regularizer`: This regularizer tries to choose smaller trees with fewer nodes over larger ones. This regularizer is basically the number of nodes present in a tree.
+    - `ensemble_regularizer`: This regularizer tries to remove as many members as possible from the ensemble as possible. If you want to select exactly K elements you can choose the `hard-L0` constraint. Otherwise "soft variations" of this in the form of `L0` and `L1` regularization are also available.
+    - `tree_regularizer`: This regularizer tries to choose smaller trees with fewer nodes over larger ones. This regularizer is basically the number of nodes present in a tree.
 
     Attributes
     ----------
     step_size : float
         The step_size used for stochastic gradient descent for opt 
     loss : str
-        The loss function for training. Should be one of {{"mse", "cross-entropy", "hinge2"}}
+        The loss function for training. Should be one of `{"mse", "cross-entropy", "hinge2"}`
     normalize_weights : bool
         True if nonzero weights should be projected onto the probability simplex, that is they should sum to 1. 
     ensemble_regularizer : str
-        The ensemble_regularizer. Should be one of {{None, "L0", "L1", "hard-L1"}}
+        The ensemble_regularizer. Should be one of `{None, "L0", "L1", "hard-L1"}`
     l_ensemble_reg : float
         The ensemble_regularizer regularization strength. 
     tree_regularizer : str
-        The tree_regularizer. Should be one of {{None,"node"}}
+        The tree_regularizer. Should be one of `{None,"node"}`
     l_tree_reg : float
         The tree_regularizer regularization strength. 
     batch_size: int

@@ -117,9 +117,9 @@ If you want to implement your own pruning method then there are two ways:
 
 You can implement your own metric for `GreedyPruningClassifier`, `MIQPPruningClassifier` or a `RankPruningClassifier` you simply have to implement a python function that should be _minimized_. The specific interface required by each method slightly differs so please check out the specific documentation for the method of your choice. In all cases, each method expects functions with at-least three parameters
 
-    - `i` (int): The classifier which should be rated
-    - `ensemble_proba` (A (M, N, C) matrix ): All N predictions of all M classifier in the entire ensemble for all C classes
-    - `target` (list / array): A list / array of class targets.
+- `i` (int): The classifier which should be rated
+- `ensemble_proba` (A (M, N, C) matrix ): All N predictions of all M classifier in the entire ensemble for all C classes
+- `target` (list / array): A list / array of class targets.
 
 Note that `ensemble_proba` contains all class probabilities predicted by all members in the ensemble. So in order to get individual class predictions for the i-th classifier you can access it via `ensemble_proba[i,:,:]`. A complete example which simply computes the error of each method would be
 

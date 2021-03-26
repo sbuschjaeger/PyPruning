@@ -10,9 +10,13 @@ def create_pruner(method = "reduced_error", **kwargs):
     '''
     This helper function creates a pruner with the given name.  
 
-    Parameters:
-        - method: The name of the method for which a pruner should be created. Currently supported are \{individual_margin_diversity, individual_contribution, individual_error, individual_kappa_statistic, reduced_error, complementariness, drep, margin_distance, combined, combined_error, reference_vector\}. For more information please have a look at the individual implementations of the each function.
-        - kwargs: All additional kwargs parameters are directly passed to the creating method. Use this to e.g. set n_estimators etc.
+    Parameters
+    ----------
+    method : string, default is "reduced_error"
+        The name of the method for which a pruner should be created. Currently supported are: {individual_margin_diversity, individual_contribution, individual_error, individual_kappa_statistic, reduced_error, complementariness, drep, margin_distance, combined, combined_error, reference_vector}
+        
+    kwargs : 
+        All additional kwargs parameters are directly passed to the creating method. Use this to e.g. set n_estimators etc.
     '''
     if method == "individual_margin_diversity":
         metric = partial(individual_margin_diversity, alpha = 0.2)

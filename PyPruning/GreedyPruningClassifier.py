@@ -8,9 +8,10 @@ from .PruningClassifier import PruningClassifier
 
 def error(i, ensemble_proba, sub_proba, target):
     ''' 
-    Compute the error of the sub-ensemble which also contains the i-th classifier.  
+    Computes the error of the sub-ensemble including the i-th classifier.  
 
     Reference:
+
         Margineantu, D., & Dietterich, T. G. (1997). Pruning Adaptive Boosting. Proceedings of the Fourteenth International Conference on Machine Learning, 211–218. https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.38.7017&rep=rep1&type=pdf
     '''
     iproba = ensemble_proba[i,:,:]
@@ -19,7 +20,7 @@ def error(i, ensemble_proba, sub_proba, target):
 
 def neg_auc(i, ensemble_proba, sub_proba, target):
     ''' 
-    Compute the (negative) roc-auc score of the sub-ensemble which also contains the i-th classifier.  
+    Compute the (negative) roc-auc score of the sub-ensemble including the i-th classifier.  
     '''
     iproba = ensemble_proba[i,:,:]
     pred = 1.0 / (1 + len(sub_proba)) * (sub_proba.sum(axis=0) + iproba)
@@ -32,7 +33,7 @@ def neg_auc(i, ensemble_proba, sub_proba, target):
 
 def complementariness(i, ensemble_proba, sub_proba, target):
     '''
-    Compute the complementariness of the i-th classifier to the sub-ensemble. A classifier is complemantry to the sub-ensemble if it disagrees with the ensemble, but is correct (and the ensemble is wrong)
+    Computes the complementariness of the i-th classifier wrt. to the sub-ensemble. A classifier is complemantry to the sub-ensemble if it disagrees with the ensemble, but is correct (and the ensemble is wrong)
 
     Reference:
         Martínez-Muñoz, G., & Suárez, A. (2004). Aggregation ordering in bagging. Proceedings of the IASTED International Conference. Applied Informatics, 258–263. Retrieved from https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.59.2035&rep=rep1&type=pdf
@@ -44,7 +45,7 @@ def complementariness(i, ensemble_proba, sub_proba, target):
 
 def margin_distance(i, ensemble_proba, sub_proba, target):
     '''
-    Compute how much the i-th classifiers moves the sub-ensembles predcition towards a reference vector.
+    Computes how including the i-th classifiers into the sub-ensemble changes its prediction towards a reference vector.
 
     Reference:
         Martínez-Muñoz, G., & Suárez, A. (2004). Aggregation ordering in bagging. Proceedings of the IASTED International Conference. Applied Informatics, 258–263. Retrieved from https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.59.2035&rep=rep1&type=pdf
@@ -84,26 +85,34 @@ class GreedyPruningClassifier(PruningClassifier):
     
     Greedy or ordering-based methods order the estimators in the ensemble according to their performance. In contrast to ranking-based pruning however they also consider the already selected sub-ensemble for selecting the next classifier. They start with the empty ensemble and then greedily select in each round that classifier which minimizes a loss function the most:
 
-        argmin_{h} L((K-1) / K f(x) + 1/K * h(x), y)
+    $$
+    \\arg\\min_{h} L\\left(\\frac{K-1}{K} f(x) + \\frac{1}{K} \\cdot h(x), y\\right)
+    $$
 
     where f is the already selected ensemble with K-1 members and h is the newly selected member. In this sense, this selection re-order the classifiers in the ensemble and hence sometimes the name ordering-based pruning is used. In this implementation a loss function receives 4 parameters:
 
-        - `i` (int): The classifier which should be rated
-        - `ensemble_proba` (A (M, N, C) matrix ): All N predictions of all M classifier in the entire ensemble for all C classes
-        - `sub_proba` (A (M, N, C) matrix ): All N predictions of all K classifier in the entire sub-ensemble for all C classes
-        - `target` (list / array): A list / array of class targets.
+    - `i` (int): The classifier which should be rated
+    - `ensemble_proba` (A (M, N, C) matrix ): All N predictions of all M classifier in the entire ensemble for all C classes
+    - `sub_proba` (A (M, N, C) matrix ): All N predictions of all K classifier in the entire sub-ensemble for all C classes
+    - `target` (list / array): A list / array of class targets.
 
     A simple loss function which minimizes the overall sub-ensembles error would be
 
+    ```Python
         def error(i, ensemble_proba, sub_proba, target):
             iproba = ensemble_proba[i,:,:]
             pred = 1.0 / (1 + len(sub_proba)) * (sub_proba.sum(axis=0) + iproba)
             return (pred.argmax(axis=1) != target).mean() 
+    ```
 
-    Attributes:
-        - n_estimators (int, default is 5): The number of estimators which should be selected.
-        - metric (function, default is individual_error): A function that assigns a score (smaller is better) to each classifier which is then used for selecting the next classifier in each round
-        - n_jobs (int, default is 8): The number of threads used for computing the individual metrics for each classifier.
+    Attributes
+    ----------
+    n_estimators : int, default is 5
+        The number of estimators which should be selected.
+    metric : function, default is individual_error
+        A function that assigns a score (smaller is better) to each classifier which is then used for selecting the next classifier in each round
+    n_jobs : int, default is 8
+        The number of threads used for computing the individual metrics for each classifier.
     '''
     def __init__(self, n_estimators = 5, metric = error, n_jobs = 8):
         super().__init__()

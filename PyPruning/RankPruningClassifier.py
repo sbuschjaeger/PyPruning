@@ -13,9 +13,11 @@ def individual_margin_diversity(i, ensemble_proba, target, alpha = 0.2):
 
     Note: The paper uses alpha = 0.2 in all experiments and reports that it worked well. Thus, it is also the default value here. If you want to change this value you can use `partial` to set it to a different value (e.g. 0.5) before creating a new RankPruningClassifier:
 
+    ```Python
         from functools import partial
         m_function = partial(individual_margin_diversity, alpha = 0.5)
         pruner = RankPruningClassifier(n_estimators = 10, metric = m_function, n_jobs = 8)
+    ```
 
     Reference:
         Guo, H., Liu, H., Li, R., Wu, C., Guo, Y., & Xu, M. (2018). Margin & diversity based ordering ensemble pruning. Neurocomputing, 275, 237–246. https://doi.org/10.1016/j.neucom.2017.06.052
@@ -145,10 +147,10 @@ def reference_vector(i, ensemble_proba, target):
 
     Note: The paper describes a slightly different distance metric which constructs the projection of ipred to a reference vector. Unfortunatly, the specific implementation of this reference vector is not epxlained in detail in the paper.However, the authors also note two things:
     
-        (1) They use all classifier with an angle <= pi/2 which can lead to more than n_estimator classifier. Thus we need to present an ordering based on the angles and pick the first n_estimator.
-        (2) "The classifiers are ordered by increasing values of the angle between the signature vectors of the individual classifiers and the reference vector". 
+    - (1) They use all classifier with an angle <= pi/2 which can lead to more than n_estimator classifier. Thus we need to present an ordering based on the angles and pick the first n_estimator.
+    - (2) "The classifiers are ordered by increasing values of the angle between the signature vectors of the individual classifiers and the reference vector". 
     
-    ref and ipred follow the exact definitions as presented in the paper (eq. 3) and the cosine_similary is the most direct implementation of "the angle between signature and reference vector" 
+    `ref` and `ipred` (see source code) follow the exact definitions as presented in the paper (eq. 3) and the cosine_similary is the most direct implementation of "the angle between signature and reference vector" 
 
 
     Reference:
@@ -163,22 +165,28 @@ class RankPruningClassifier(PruningClassifier):
     
     Ranking methods assign a rank to each classifier in the ensemble and then select the best n_estimators according to this ranking. To rate each classifier a metric must be given. A metric is a function with receives three parameters:
         
-        - `i` (int): The classifier which should be rated
-        - `ensemble_proba` (A (M, N, C) matrix ): All N predictions of all M classifier in the entire ensemble for all C classes
-        - `target` (list / array): A list / array of class targets.
+    - `i` (int): The classifier which should be rated
+    - `ensemble_proba` (A (M, N, C) matrix ): All N predictions of all M classifier in the entire ensemble for all C classes
+    - `target` (list / array): A list / array of class targets.
 
     A simple example for this function would be the individual error of each method:
     
+    ```Python
         def individual_error(i, ensemble_proba, target):
             iproba = ensemble_proba[i,:,:]
             return (iproba.argmax(axis=1) != target).mean()
+    ```
 
     **Important** The classifiers are sorted in ascending order and the first n_estimators are selected. Differently put, the metric is always minimized.
 
-    Attributes:
-        - n_estimators (int, default is 5): The number of estimators which should be selected.
-        - metric (function, default is individual_error): A function that assigns a score to each classifier which is then used for sorting
-        - n_jobs (int, default is 8): The number of threads used for computing the individual metrics for each classifier.
+    Attributes
+    ----------
+    n_estimators : int, default is 5
+        The number of estimators which should be selected.
+    metric : function, default is individual_error 
+        A function that assigns a score to each classifier which is then used for sorting
+    n_jobs : int, default is 8
+        The number of threads used for computing the individual metrics for each classifier.
     '''
     def __init__(self, 
         n_estimators = 5, 
