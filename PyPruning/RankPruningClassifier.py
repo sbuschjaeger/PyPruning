@@ -2,7 +2,8 @@ from functools import partial
 import numpy as np
 
 from sklearn.metrics import roc_auc_score, cohen_kappa_score
-from sklearn.metrics.pairwise import cosine_similarity
+
+from scipy import spatial
 
 from joblib import Parallel,delayed
 
@@ -104,10 +105,47 @@ def individual_contribution(i, ensemble_proba, target):
 
 def individual_error(i, ensemble_proba, target):
     ''' 
-    Compute the error for the individual classifier.
+    Compute the error for the individual classifier. If I read it correctly, then the following paper proposed this method. Although the paper is not super clear on this.
+
+    Reference:
+        Jiang, Z., Liu, H., Fu, B., & Wu, Z. (2017). Generalized ambiguity decompositions for classification with applications in active learning and unsupervised ensemble pruning. 31st AAAI Conference on Artificial Intelligence, AAAI 2017, 2073–2079.
     '''
     iproba = ensemble_proba[i,:,:]
     return (iproba.argmax(axis=1) != target).mean()
+
+def error_ambiguity(i, ensemble_proba, target):
+    '''
+    Compute the error for the individual classifier according to the ambiguity decomposition. I am fairly sure that this implementation is correct, however, the paper is not super clear on what they do from an algorithmic point of view. From what I can tell is, that the authors compute the ambiguity scores for each classifier only once and then "greedily" pick the best K models. 
+
+    Note: The paper only considers binary classification problems and specifically focuses on the logistic loss function. Luckily, Hastie et al. proposed a multi-class boosting algorithm which uses a multi class variation of the (binary) logistic loss. Both loss functions are equal for 2 classes and thus we implement the multi-class version here. For more details see the reference.
+
+    Reference:
+        Jiang, Z., Liu, H., Fu, B., & Wu, Z. (2017). Generalized ambiguity decompositions for classification with applications in active learning and unsupervised ensemble pruning. 31st AAAI Conference on Artificial Intelligence, AAAI 2017, 2073–2079.
+        
+        Hastie, T., Rosset, S., Zhu, J., & Zou, H. (2009). Multi-class AdaBoost. Statistics and Its Interface, 2(3), 349–360. https://doi.org/10.4310/sii.2009.v2.n3.a8
+    '''
+    iproba = ensemble_proba[i,:,:]
+    all_proba = ensemble_proba.mean(axis=0)
+    sqdiff = (iproba - all_proba)**2
+
+    C = iproba.shape[1]
+
+    A = 1.0 / C**2 * np.exp(- 1.0 / C * iproba)
+    B = 1.0 / C**2 * (1.0 / (C-1))**2 * np.exp(1.0 / C * 1.0 / (C-1) * iproba)
+
+    bitmask = np.zeros(A.shape)
+    # bitmask[:,target] = 1.0
+    np.put_along_axis(bitmask, target[:,None], 1.0, 1)
+    return (bitmask * A + (1.0 - bitmask) * B).sum() + sqdiff.sum()
+
+    # for j in range(iproba.shape[0]):
+    #     for c in range(C):
+    #         if target[j] == c:
+    #             A += 1.0 / C**2 * np.exp(- 1.0 / C * iproba[j,c])
+    #         else:
+    #             A += 1.0 / C**2 * (1.0 / (C-1))**2 * np.exp(1.0 / C * 1.0 / (C-1) * iproba[j,c])
+    
+    # return A + sqdiff.sum()
 
 def individual_neg_auc(i, ensemble_proba, target):
     ''' 
@@ -144,22 +182,25 @@ def individual_kappa_statistic(i, ensemble_proba, target):
 
 def reference_vector(i, ensemble_proba, target):
     '''
-    Compare how close the individual predictions is to the entire ensemble's prediction by using the cosine_similary
+    Compare how close the individual predictions is to the entire ensemble's prediction by using the cosine similary
 
     Note: The paper describes a slightly different distance metric compared to what is implemented here. The paper uses a projection to a reference vector, but - unfortunately - does not explain the specific implementation in detail. However, the authors also note two things:
     
-    - (1) They use all classifier with an angle <= pi/2 which can lead to more than n_estimator classifier. Thus we need to present an ordering based on the angles and pick the first n_estimator.
+    - (1) They use all classifier with an angle <= pi/2 which can lead to more than n_estimator classifier. This implementation selects at most n_estimators and thus we need to present an ordering based on the angles and pick the first n_estimator.
     - (2) "The classifiers are ordered by increasing values of the angle between the signature vectors of the individual classifiers and the reference vector". 
     
-    `ref` and `ipred` (see source code) follow the exact definitions as presented in the paper (eq. 3) and the cosine_similary is the most direct implementation of "the angle between signature and reference vector" 
+    `ref` and `ipred` (see source code) follow the exact definitions as presented in the paper (eq. 3) and cosine is the most direct implementation of "the angle between signature and reference vector" 
 
 
     Reference:
         Hernández-Lobato, D., Martínez-Muñoz, G., & Suárez, A. (2006). Pruning in Ordered Bagging Ensembles. International Conference on Machine Learning, 1266–1273. https://doi.org/10.1109/ijcnn.2006.246837
     '''
-    ref = 2 * (ensemble_proba.argmax(axis=1) == target) - 1.0
+    ref = 2 * (ensemble_proba.mean(axis=0).argmax(axis=1) == target) - 1.0
     ipred = 2 * (ensemble_proba[i,:].argmax(axis=1) == target) - 1.0
-    return -1.0 * cosine_similarity(ipred, ref)
+    return 1.0 - spatial.distance.cosine(ref, ipred)
+    # ref /= np.linalg.norm(ref)
+    # ipred /= np.linalg.norm(ipred)
+    #return np.dot(ref, ipred)
 
 class RankPruningClassifier(PruningClassifier):
     ''' Rank pruning. 

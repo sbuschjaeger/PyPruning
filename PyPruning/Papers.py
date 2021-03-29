@@ -4,7 +4,7 @@ from sklearn.metrics import pairwise
 
 from .MIQPPruningClassifier import MIQPPruningClassifier, combined, combined_error
 from .GreedyPruningClassifier import GreedyPruningClassifier, error, complementariness, margin_distance, drep
-from .RankPruningClassifier import RankPruningClassifier, individual_margin_diversity, individual_contribution, individual_error, individual_kappa_statistic, reference_vector
+from .RankPruningClassifier import RankPruningClassifier, individual_margin_diversity, individual_contribution, individual_error, individual_kappa_statistic, reference_vector, error_ambiguity
 
 def create_pruner(method = "reduced_error", **kwargs):
     '''
@@ -41,6 +41,8 @@ def create_pruner(method = "reduced_error", **kwargs):
         return RankPruningClassifier(metric=reference_vector,  **kwargs)
     elif method == "combined_error":
         return MIQPPruningClassifier(single_metric=None, pairwise_metric=combined_error, alpha = 1.0)
+    elif method == "error_ambiguity":
+        return RankPruningClassifier(metric=error_ambiguity,  **kwargs)
     # elif method == "disagreement":
     #     return MIQPPruningClassifier(single_metric=None, pairwise_metric=disagreement, alpha = 1.0)
 

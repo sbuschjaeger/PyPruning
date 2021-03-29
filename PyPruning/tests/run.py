@@ -21,7 +21,7 @@ XTP, Xtest, ytp, ytest = train_test_split(data, target, test_size=0.25, random_s
 Xtrain, Xprune, ytrain, yprune = train_test_split(XTP, ytp, test_size=0.25, random_state=42)
 
 n_base = 128
-n_prune = 32
+n_prune = 8
 model = RandomForestClassifier(n_estimators=n_base)
 model.fit(XTP, ytp)
 pred = model.predict(Xtest)
@@ -36,8 +36,8 @@ print("Accuracy of RF trained on XTrain only with {} estimators: {} %".format(n_
 
 # "individual_margin_diversity", "individual_contribution", "individual_error", "individual_kappa_statistic", "reduced_error", "complementariness", "margin_distance", "combined", "drep", "reduced_error", "combined_error"
 #for p in [ "individual_margin_diversity", "individual_contribution", "individual_error", "individual_kappa_statistic", "reduced_error", "complementariness", "margin_distance", "combined", "drep", "reduced_error", "individual_kappa_statistic"]: #"combined_error"
-for p in ["drep"]:
-    pruned_model = create_pruner(p, n_estimators = n_prune, rho = 0.5)
+for p in ["reference_vector"]:
+    pruned_model = create_pruner(p, n_estimators = n_prune)
     pruned_model.prune(Xprune, yprune, model.estimators_)
     pred = pruned_model.predict(Xtest)
     print("Accuracy of {} with {} estimators: {} %".format(p, n_prune, 100.0 * accuracy_score(ytest, pred)))
