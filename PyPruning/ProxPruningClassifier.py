@@ -79,6 +79,8 @@ class ProxPruningClassifier(PruningClassifier):
         The number of epochs SGD is run.
     verbose : boolean
         If true, shows a progress bar via tqdm and some statistics
+    update_leaves : boolean
+        If true, then leave nodes of each tree are also updated via SGD.
     out_path: str
         If set, stores a file called epoch_$i.npy with the statistics for epoch $i under the given path.
     estimators_ : list of objects
