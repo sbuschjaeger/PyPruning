@@ -34,16 +34,18 @@ def create_mini_batches(inputs, targets, data, batch_size, shuffle=False):
 def to_prob_simplex(x):
     if x is None or len(x) == 0:
         return x
-    sorted_x = np.sort(x)
-    x_sum = sorted_x[0]
-    l = 1.0 - sorted_x[0]
-    for i in range(1,len(sorted_x)):
-        x_sum += sorted_x[i]
-        tmp = 1.0 / (i + 1.0) * (1.0 - x_sum)
-        if (sorted_x[i] + tmp) > 0:
-            l = tmp 
+    u = np.sort(x)[::-1]
+
+    l = None
+    u_sum = 0
+    for i in range(0,len(u)):
+        u_sum += u[i]
+        tmp = 1.0 / (i + 1.0) * (1.0 - u_sum)
+        if u[i] + tmp > 0:
+            l = tmp
     
-    return [max(xi + l, 0.0) for xi in x]
+    projected_x = [max(xi + l, 0.0) for xi in x]
+    return projected_x
 
 class ProxPruningClassifier(PruningClassifier):
     """ (Heterogeneous) Pruning via Proximal Gradient Descent
