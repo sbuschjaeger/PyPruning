@@ -29,5 +29,5 @@ jobs:
           git commit -m "Added latest accuracy on digits to repository"
       - name: Push changes # push the output folder to your repo
         uses: ad-m/github-push-action@master
-          with:
-            github_token: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
