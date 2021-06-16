@@ -1,0 +1,4 @@
+method,accuracy,commit
+RF-8 ,95.11111111111111,c3390f72cf77783fee9caea306cad368eda10d79
+RF-128 ,98.0,c3390f72cf77783fee9caea306cad368eda10d79
+PRandomPruningClassifier-8,94.44444444444444,c3390f72cf77783fee9caea306cad368eda10d79
