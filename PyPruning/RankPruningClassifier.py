@@ -230,7 +230,7 @@ class RankPruningClassifier(PruningClassifier):
     n_jobs : int, default is 8
         The number of threads used for computing the individual metrics for each classifier.
     '''
-    def __init__(self, n_estimators = 5, metric = individual_error, n_jobs = 8, **kwargs):
+    def __init__(self, n_estimators = 5, metric = individual_error, n_jobs = 8, metric_options = None):
         """
         Creates a new RankPruningClassifier.
 
@@ -251,11 +251,12 @@ class RankPruningClassifier(PruningClassifier):
         assert metric is not None, "You must provide a valid metric!"
         self.n_estimators = n_estimators
         self.n_jobs = n_jobs
+        self.metric = metric
 
-        if len(kwargs) > 0:
-            self.metric = partial(metric, **kwargs)
+        if metric_options is None:
+            self.metric_options = {}
         else:
-            self.metric = metric
+            self.metric_options = metric_options
 
     def prune_(self, proba, target, data = None):
         n_received = len(proba)
@@ -263,7 +264,7 @@ class RankPruningClassifier(PruningClassifier):
             return range(0, n_received), [1.0 / n_received for _ in range(n_received)]
         
         single_scores = Parallel(n_jobs=self.n_jobs, backend="threading")(
-            delayed(self.metric) (i, proba, target) for i in range(n_received)
+            delayed(self.metric) (i, proba, target, **self.metric_options) for i in range(n_received)
         )
         single_scores = np.array(single_scores)
 

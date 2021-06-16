@@ -68,7 +68,7 @@ class ProxPruningClassifier(PruningClassifier):
     normalize_weights : boolean
         True if nonzero weights should be projected onto the probability simplex, that is they should sum to 1. 
     ensemble_regularizer : str
-        The ensemble_regularizer. Should be one of `{None, "L0", "L1", "hard-L1"}`
+        The ensemble_regularizer. Should be one of `{None, "L0", "L1", "hard-L0"}`
     l_ensemble_reg : float
         The ensemble_regularizer regularization strength. 
     tree_regularizer : str
@@ -94,7 +94,7 @@ class ProxPruningClassifier(PruningClassifier):
     def __init__(self,
         loss = "cross-entropy",
         step_size = 1e-1,
-        ensemble_regularizer = "L1",
+        ensemble_regularizer = "hard-L0",
         l_ensemble_reg = 0,  
         tree_regularizer = "node",
         l_tree_reg = 0,
@@ -107,14 +107,14 @@ class ProxPruningClassifier(PruningClassifier):
         eval_every_epochs = None):
 
         assert loss in ["mse","cross-entropy","hinge2"], "Currently only {{mse, cross-entropy, hinge2}} loss is supported"
-        assert ensemble_regularizer is None or ensemble_regularizer in ["none","L0", "L1", "hard-L1"], "Currently only {{none,L0, L1, hard-L1}} the ensemble regularizer is supported"
+        assert ensemble_regularizer is None or ensemble_regularizer in ["none","L0", "L1", "hard-L0"], "Currently only {{none,L0, L1, hard-L0}} the ensemble regularizer is supported"
         assert l_tree_reg >= 0, "l_reg must be greater or equal to 0"
         assert tree_regularizer is None or tree_regularizer in ["node"], "Currently only {{none, node}} regularizer is supported for tree the regularizer."
         assert batch_size >= 1, "batch_size must be at-least 1"
         assert epochs >= 1, "epochs must be at-least 1"
 
-        if ensemble_regularizer == "hard-L1":
-            assert l_ensemble_reg >= 1 or l_ensemble_reg == 0, "You chose ensemble_regularizer = hard-L1, but set 0 < l_ensemble_reg < 1 which does not really makes sense. If hard-L1 is set, then l_ensemble_reg is the maximum number of estimators in the pruned ensemble, thus likely an integer value >= 1."
+        if ensemble_regularizer == "hard-L0":
+            assert l_ensemble_reg >= 1 or l_ensemble_reg == 0, "You chose ensemble_regularizer = hard-L0, but set 0 < l_ensemble_reg < 1 which does not really makes sense. If hard-L0 is set, then l_ensemble_reg is the maximum number of estimators in the pruned ensemble, thus likely an integer value >= 1."
 
         super().__init__()
         
@@ -208,7 +208,7 @@ class ProxPruningClassifier(PruningClassifier):
             sign = np.sign(tmp_w)
             tmp_w = np.abs(tmp_w) - self.step_size*self.l_ensemble_reg
             tmp_w = sign*np.maximum(tmp_w,0)
-        elif self.ensemble_regularizer == "hard-L1":
+        elif self.ensemble_regularizer == "hard-L0":
             top_K = np.argsort(tmp_w)[-self.l_ensemble_reg:]
             tmp_w = np.array([w if i in top_K else 0 for i,w in enumerate(tmp_w)])
 

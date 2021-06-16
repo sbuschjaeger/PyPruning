@@ -7,14 +7,13 @@ dependencies:
   - numpy
   - pylint
   - scikit-learn
-  - pip
   - pandas
   - setuptools
-  - matplotlib
-  - jupyter
   - tqdm
   - gurobi
   - pdoc3
+  #- argparse
+  - pip
   - pip:
     - cvxpy
     # - cvxopt

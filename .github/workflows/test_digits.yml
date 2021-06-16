@@ -1,0 +1,33 @@
+name: test-digits
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  test-digits:
+    runs-on: "ubuntu-latest"
+    name: Prepare conda environment and test everything
+    #shell: bash -l {0}
+    defaults:
+      run:
+        shell: bash -l {0}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          miniconda-version: "latest"
+          activate-environment: pypruning
+          environment-file: environment.yml
+      - run: |
+          cd PyPruning/tests
+          ./test_digits.py --commit $GITHUB_SHA --file accuracy_digits.csv
+      - name: Commit files # transfer the new html files back into the repository
+        run: |
+          git config --local user.name "sbuschjaeger"
+          git add PyPruning/tests/accuracy_digits.csv
+          git commit -m "Added latest accuracy on digits to repository"
+      - name: Push changes # push the output folder to your repo
+        uses: ad-m/github-push-action@master
+          with:
+            github_token: ${{ secrets.GITHUB_TOKEN }}

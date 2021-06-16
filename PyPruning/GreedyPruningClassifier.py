@@ -144,7 +144,7 @@ class GreedyPruningClassifier(PruningClassifier):
     n_jobs : int, default is 8
         The number of threads used for computing the individual metrics for each classifier.
     '''
-    def __init__(self, n_estimators = 5, metric = error, n_jobs = 8, **kwargs):
+    def __init__(self, n_estimators = 5, metric = error, n_jobs = 8, metric_options = None):
         """
         Creates a new GreedyPruningClassifier.
 
@@ -165,16 +165,17 @@ class GreedyPruningClassifier(PruningClassifier):
         assert metric is not None, "You did not provide a valid metric for model selection. Please do so"
         self.n_estimators = n_estimators
         self.n_jobs = n_jobs
+        self.metric = metric
 
-        if len(kwargs) > 0:
-            self.metric = partial(metric, **kwargs)
+        if metric_options is None:
+            self.metric_options = {}
         else:
-            self.metric = metric
+            self.metric_options = metric_options
 
     # I assume that Parallel keeps the order of evaluations regardless of its backend (see eg. https://stackoverflow.com/questions/56659294/does-joblib-parallel-keep-the-original-order-of-data-passed)
     # But for safty measures we also return the index of the current model
-    def _metric(self, i, ensemble_proba, selected_models, target):
-        return (i, self.metric(i, ensemble_proba, selected_models, target))
+    def _metric(self, i, ensemble_proba, selected_models, target, additional_options):
+        return (i, self.metric(i, ensemble_proba, selected_models, target, **additional_options))
 
     def prune_(self, proba, target, data = None):
         n_received = len(proba)
@@ -186,7 +187,7 @@ class GreedyPruningClassifier(PruningClassifier):
 
         for _ in range(self.n_estimators):
             scores = Parallel(n_jobs=self.n_jobs, backend="threading")(
-                delayed(self._metric) ( i, proba, selected_models, target) for i in not_seleced_models
+                delayed(self._metric) ( i, proba, selected_models, target, self.metric_options) for i in not_seleced_models
             )
 
             best_model, _ = min(scores, key = lambda e: e[1])
