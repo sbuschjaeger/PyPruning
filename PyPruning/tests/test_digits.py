@@ -51,48 +51,48 @@ metrics.append({
     "commit":args.commit
 })
 
-# for ce in [kmeans, agglomerative]:
-#     for se in [random_selector, centroid_selector, accuracy, largest_mean_distance]:
-#         pruned_model = ClusterPruningClassifier(cluster_estimators=ce, select_estimators=se, n_estimators=n_prune)
-#         pruned_model.prune(Xprune, yprune, model.estimators_)
-#         pred = pruned_model.predict(Xtest)
-#         metrics.append({
-#             "method":"ClusterPruningClassifier-{}, cd = {}, se = {} ".format(n_prune, ce.__name__, se.__name__),
-#             "accuracy":100.0 * accuracy_score(ytest, pred),
-#             "commit":args.commit
-#         })
+for ce in [kmeans, agglomerative]:
+    for se in [random_selector, centroid_selector, accuracy, largest_mean_distance]:
+        pruned_model = ClusterPruningClassifier(cluster_estimators=ce, select_estimators=se, n_estimators=n_prune)
+        pruned_model.prune(Xprune, yprune, model.estimators_)
+        pred = pruned_model.predict(Xtest)
+        metrics.append({
+            "method":"ClusterPruningClassifier-{}, cd = {}, se = {} ".format(n_prune, ce.__name__, se.__name__),
+            "accuracy":100.0 * accuracy_score(ytest, pred),
+            "commit":args.commit
+        })
 
-# for m in [error, neg_auc, complementariness, margin_distance, drep]:
-#     pruned_model = GreedyPruningClassifier(metric = m, n_estimators = n_prune)
-#     pruned_model.prune(Xprune, yprune, model.estimators_)
-#     pred = pruned_model.predict(Xtest)
-#     metrics.append({
-#         "method":"GreedyPruningClassifier-{}, m = {}".format(n_prune, m.__name__),
-#         "accuracy":100.0 * accuracy_score(ytest, pred),
-#         "commit":args.commit
-#     })
+for m in [error, neg_auc, complementariness, margin_distance, drep]:
+    pruned_model = GreedyPruningClassifier(metric = m, n_estimators = n_prune)
+    pruned_model.prune(Xprune, yprune, model.estimators_)
+    pred = pruned_model.predict(Xtest)
+    metrics.append({
+        "method":"GreedyPruningClassifier-{}, m = {}".format(n_prune, m.__name__),
+        "accuracy":100.0 * accuracy_score(ytest, pred),
+        "commit":args.commit
+    })
 
-# for m in [reference_vector, individual_kappa_statistic, individual_neg_auc, error_ambiguity, individual_error, individual_contribution, individual_margin_diversity]:
-#     pruned_model = RankPruningClassifier(metric = m, n_estimators = n_prune)
-#     pruned_model.prune(Xprune, yprune, model.estimators_)
-#     pred = pruned_model.predict(Xtest)
-#     metrics.append({
-#         "method":"RankPruningClassifier-{}, m = {}".format(n_prune, m.__name__),
-#         "accuracy":100.0 * accuracy_score(ytest, pred),
-#         "commit":args.commit
-#     })
+for m in [reference_vector, individual_kappa_statistic, individual_neg_auc, error_ambiguity, individual_error, individual_contribution, individual_margin_diversity]:
+    pruned_model = RankPruningClassifier(metric = m, n_estimators = n_prune)
+    pruned_model.prune(Xprune, yprune, model.estimators_)
+    pred = pruned_model.predict(Xtest)
+    metrics.append({
+        "method":"RankPruningClassifier-{}, m = {}".format(n_prune, m.__name__),
+        "accuracy":100.0 * accuracy_score(ytest, pred),
+        "commit":args.commit
+    })
 
-# # TODO Vary other parameter?
-# for l in ["mse", "cross-entropy"]:
-#     for l_tree in [0, 1e-5]:
-#         pruned_model = ProxPruningClassifier(l_ensemble_reg=n_prune, epochs=25, step_size=1e-3, ensemble_regularizer="hard-L0", batch_size=32, verbose=False, loss=l, normalize_weights=True, l_tree_reg=l_tree) 
-#         pruned_model.prune(Xprune, yprune, model.estimators_)
-#         pred = pruned_model.predict(Xtest)
-#         metrics.append({
-#             "method":"ProxPruningClassifier-{}, l = {}, l_tree = {}".format(n_prune, l, l_tree),
-#             "accuracy":100.0 * accuracy_score(ytest, pred),
-#             "commit":args.commit
-#         })
+# TODO Vary other parameter?
+for l in ["mse", "cross-entropy"]:
+    for l_tree in [0, 1e-5]:
+        pruned_model = ProxPruningClassifier(l_ensemble_reg=n_prune, epochs=25, step_size=1e-3, ensemble_regularizer="hard-L0", batch_size=32, verbose=False, loss=l, normalize_weights=True, l_tree_reg=l_tree) 
+        pruned_model.prune(Xprune, yprune, model.estimators_)
+        pred = pruned_model.predict(Xtest)
+        metrics.append({
+            "method":"ProxPruningClassifier-{}, l = {}, l_tree = {}".format(n_prune, l, l_tree),
+            "accuracy":100.0 * accuracy_score(ytest, pred),
+            "commit":args.commit
+        })
 
 pruned_model = RandomPruningClassifier(n_estimators = n_prune)
 pruned_model.prune(Xprune, yprune, model.estimators_)
