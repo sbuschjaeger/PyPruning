@@ -3,7 +3,7 @@ import numpy as np
 from .PruningClassifier import PruningClassifier
 
 class RandomPruningClassifier(PruningClassifier):
-    ''' Random pruning.
+    """ Random pruning.
     This pruning method implements a random pruning which randomly selects n_estimators from the original ensemble and assigns equal weights to each of the classifiers.
 
     Attributes
@@ -12,7 +12,7 @@ class RandomPruningClassifier(PruningClassifier):
         The number of estimators which should be selected.
     seed : int, optional, default is None
         The random seed for the random selection
-    '''
+    """
 
     def __init__(self, n_estimators = 5, seed = None):
         """

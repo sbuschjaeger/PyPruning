@@ -12,8 +12,22 @@ from sklearn.tree import DecisionTreeClassifier
 
 from .PruningClassifier import PruningClassifier
 
-# Modified from https://stackoverflow.com/questions/38157972/how-to-implement-mini-batch-gradient-descent-in-python
 def create_mini_batches(inputs, targets, data, batch_size, shuffle=False):
+    """ Create an mini-batch like iterator for the given inputs / target / data. Shamelessly copied from https://stackoverflow.com/questions/38157972/how-to-implement-mini-batch-gradient-descent-in-python
+    
+    Parameters
+    ----------
+    inputs : array-like vector or matrix 
+        The inputs to be iterated in mini batches
+    targets : array-like vector or matrix 
+        The targets to be iterated in mini batches
+    data : array-like vector or matrix 
+        The data to be iterated in mini batches
+    batch_size : int
+        The mini batch size
+    shuffle : bool, default False
+        If True shuffle the batches 
+    """
     assert inputs.shape[0] == targets.shape[0]
     indices = np.arange(inputs.shape[0])
     if shuffle:
@@ -30,8 +44,23 @@ def create_mini_batches(inputs, targets, data, batch_size, shuffle=False):
 
         yield inputs[excerpt], targets[excerpt], data[excerpt]
 
-# See https://eng.ucmerced.edu/people/wwang5/papers/SimplexProj.pdf for details
 def to_prob_simplex(x):
+    """ Projects the given vector to the probability simplex so that :math:`\\sum_{i=1}^k x_i = 1, x_i \\in [0,1]`. 
+
+    Reference
+        Weiran Wang and Miguel A. Carreira-Perpinan (2013) Projection onto the probability simplex: An efficient algorithm with a simple proof, and an application. https://eng.ucmerced.edu/people/wwang5/papers/SimplexProj.pdf
+
+    Parameters
+    ----------
+    x : array-like vector with k entries
+        The vector to be projected.
+
+    Returns
+    -------
+    u : array-like vector with k entries
+        The projected vector.
+
+    """
     if x is None or len(x) == 0:
         return x
     u = np.sort(x)[::-1]
@@ -50,45 +79,59 @@ def to_prob_simplex(x):
 class ProxPruningClassifier(PruningClassifier):
     """ (Heterogeneous) Pruning via Proximal Gradient Descent
     
-    This pruning method directly minimizes
-    $$
-        \\arg\\min_w L \\left(\sum_{i=1}^M w_i h_i(x), y\\right) + \\lambda \\sum_{i=1}^K w_i R(h_i) 
-    $$
-    via (stochastic) proximal gradient descent. Currently the `{mse, cross-entropy, hinge2}` are supported. In addition to the loss functions two types of regularizer can be chosen:
+    This pruning method directly minimizes a constrained loss function :math:`L` including a regularizer :math:`R_1` via (stochastic) proximal gradient descent. There are two sets of constraints available. When soft constraints are used, then the following function is minimized
 
-    - `ensemble_regularizer`: This regularizer tries to remove as many members as possible from the ensemble as possible. If you want to select exactly K elements you can choose the `hard-L0` constraint. Otherwise "soft variations" of this in the form of `L0` and `L1` regularization are also available.
-    - `tree_regularizer`: This regularizer tries to choose smaller trees with fewer nodes over larger ones. This regularizer is basically the number of nodes present in a tree.
+    .. math::
 
-    Attributes
+        \\arg\\min_w L \\left(\sum_{i=1}^M w_i h_i(x), y\\right) + \\lambda_1 \\sum_{i=1}^K w_i R_1(h_i) + \\lambda_2 R_2(w)
+    
+    When hard constraints are used, then the following objective is minimized
+
+    .. math::
+
+        \\arg\\min_w L \\left(\sum_{i=1}^M w_i h_i(x), y\\right) + \\lambda_1 \\sum_{i=1}^K w_i R_1(h_i) \\text{ s.t. } R_2(w) \le \\lambda_2
+
+    The regularizer :math:`R_1` is used to select smaller trees, whereas the regularizer :math:`R_2` is used to select fewer trees from the ensemble.
+
     ----------
-    step_size : float
+    step_size : float, default is 0.1
         The step_size used for stochastic gradient descent for opt 
-    loss : str
-        The loss function for training. Should be one of `{"mse", "cross-entropy", "hinge2"}`
-    normalize_weights : boolean
+    loss : str, default is ``"mse"``
+        The loss function for training. Should be one of ``{"mse", "cross-entropy", "hinge2"}``. 
+
+        - ``"mse"``: :math:`L(f(x),y) = \\sum_{i=1}^C (f(x)_i - y_i)^2`
+        - ``"cross-entropy"``: :math:`L(f(x),y) = \\sum_{i=1}^C y_i \\log(s(f(x))_i)`, where :math:`s` is the softmax function.
+        - ``"hinge2"``: :math:`L(f(x),y) = \\sum_{i=1}^C \\max(0, 1 - y_i \\cdot f(x)_i )^2`
+    normalize_weights : boolean, default is True
         True if nonzero weights should be projected onto the probability simplex, that is they should sum to 1. 
-    ensemble_regularizer : str
-        The ensemble_regularizer. Should be one of `{None, "L0", "L1", "hard-L0"}`
-    l_ensemble_reg : float
-        The ensemble_regularizer regularization strength. 
-    tree_regularizer : str
-        The tree_regularizer. Should be one of `{None,"node"}`
-    l_tree_reg : float
-        The tree_regularizer regularization strength. 
-    batch_size: int
-        The batch sized used for SGD
-    epochs : int
-        The number of epochs SGD is run.
-    verbose : boolean
+    ensemble_regularizer : str or None, default is ``"hard-L0"``
+        The ensemble_regularizer :math:`R_2`. This regularizer is used to select fewer members from the ensembles. It should be one of ``{None, "L0", "L1", "hard-L0"}``
+
+        - ``None``: No constraints are applied during ensemble selection.
+        - ``"L0"``: Apply :math:`R_2(w) = || w ||_0` regularization (implemented via ``numpy.linalg.norm`` ). The regularization strength :math:`\lambda_2` scales the regularizer in this case.
+        - ``"L1"``: Apply :math:`R_2(w) = || w ||_1` regularization (implemented via ``numpy.linalg.norm`` ). The regularization strength :math:`\lambda_2` scales the regularizer in this case.
+        - ``"hard-L0"``: Apply :math:`R_2(w) = || w ||_0 \\le \\lambda_2` regularization. This is the "hard" version of the ``L0`` regularization. The regularization strength :math:`\\lambda_2` is used a an upper bound in this case.
+
+    l_ensemble_reg : float, default is 0
+        The ``ensemble_regularizer`` regularization strength :math:`\\lambda_2`. If ``"L0"`` or ``"L1"`` is selected, then ``l_ensemble_reg`` is the regularization strength which scales the regularizer. If ``"hard-L0"`` is selected, then ``l_ensemble_reg`` is the maximum number of members in pruned ensemble.
+    tree_regularizer : str or ``None``, default is ``"node"``
+        The tree_regularizer :math:`R_1`. This regularizer is used to select smaller trees. Should be one of ``{None,"node"}``
+
+        - ``None``: No constraints are applied during ensemble selection.
+        - ``"node"``: Apply :math:`R_1(h_i) = n_i` regularization where :math:`n_i` is the number of nodes in the tree.
+
+    l_tree_reg : float, default is 0
+        The ``tree_regularizer`` regularization strength :math:`\\lambda_1`. The ``tree_regularizer`` is scaled by this value. 
+    batch_size: int, default is 256
+        The batch sized used for PSGD
+    epochs : int, default is 1
+        The number of epochs PSGD is run.
+    verbose : boolean, default is False
         If true, shows a progress bar via tqdm and some statistics
-    update_leaves : boolean
-        If true, then leave nodes of each tree are also updated via SGD.
-    out_path: str
-        If set, stores a file called epoch_$i.npy with the statistics for epoch $i under the given path.
-    estimators_ : list of objects
-        The list of estimators which are used to built the ensemble. Each estimator must offer a predict_proba method.
-    weights_ : np.array of floats
-        The list of weights corresponding to their respective estimator in self.estimators_. 
+    update_leaves : boolean, default is False
+        If true, then leave nodes of each tree are also updated via PSGD.
+    out_path: str or None, default is None
+        If not None, then statistics are stored in a file called ``$out_path/epoch_$i.npy`` for epoch $i.
     """
 
     def __init__(self,
@@ -229,9 +272,11 @@ class ProxPruningClassifier(PruningClassifier):
         return {"loss":loss, "accuracy": accuracy, "num_trees": n_trees, "num_parameters" : n_param}
 
     def num_trees(self):
+        """ Returns the number of nonzero weights """
         return np.count_nonzero(self.weights_)
 
     def num_parameters(self):
+        """ Returns the total number of decision nodes across all trees of the entire ensemble for all trees with nonzero weight. """
         return sum( [ est.tree_.node_count if w != 0 else 0 for w, est in zip(self.weights_, self.estimators_)] )
 
     def prune_(self, proba, target, data):

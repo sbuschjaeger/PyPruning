@@ -11,10 +11,12 @@ dependencies:
   - setuptools
   - tqdm
   - gurobi
-  - pdoc3
+  - sphinx
   #- argparse
   - pip
   - pip:
+    - karma-sphinx-theme
+    - sphinx_rtd_theme
     - cvxpy
-    # - cvxopt
+    - cvxopt
     - -e file:.

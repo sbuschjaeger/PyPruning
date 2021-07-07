@@ -8,7 +8,7 @@ from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier
 from sklearn.base import BaseEstimator, ClassifierMixin
 
 class PruningClassifier(ABC): 
-    ''' This abstract class forms the basis of all pruning methods and offers a unified interface. New pruning methods must extend this class and implement the prune_ method as detailed below. 
+    """ This abstract class forms the basis of all pruning methods and offers a unified interface. New pruning methods must extend this class and implement the prune_ method as detailed below. 
 
     Attributes
     ----------
@@ -18,16 +18,15 @@ class PruningClassifier(ABC):
         A list of estimators
     n_classes_ : int 
         The number of classes the pruned ensemble supports.
-    '''
+    """
     def __init__(self):
         self.weights_ = None
         self.estimators_ = None
         self.n_classes_ = None
 
-
     @abstractmethod
     def prune_(self, proba, target, data = None):
-        '''
+        """
         Prunes the ensemble using the ensemble predictions proba and the pruning data targets / data. If the pruning method requires access to the original ensemble members you can access these via self.estimators_. Note that self.estimators_ is already a deep-copy of the estimators so you are also free to change the estimators in this list if you want to.
 
         Parameters
@@ -49,11 +48,11 @@ class PruningClassifier(ABC):
         
         weights: numpy array / list of floats
             The individual weights for each selected classifier. The size of this array should match the size of idx (and not the size of the original base ensemble). 
-        '''
+        """
         pass
     
     def prune(self, X, y, estimators, classes = None, n_classes = None):
-        '''
+        """
         Prunes the given ensemble on the supplied dataset. There are a few assumptions placed on the behavior of the individual classifiers in `estimators`. If you use scikit-learn classifier and any classifier implementing their interface they should work without a problem. The detailed assumptions are listed below:
          
         - `predict_proba`: Each estimator should offer a predict_proba function which returns the class probabilities for each class on a batch of data
@@ -81,8 +80,8 @@ class PruningClassifier(ABC):
 
         Returns
         -------
-        The pruned ensemble.
-        '''
+        The pruned ensemble (self).
+        """
         if classes is None:
             classes = [e.n_classes_ for e in estimators]
             if (len(set(classes)) > 1):
@@ -121,7 +120,7 @@ class PruningClassifier(ABC):
         return self
 
     def _individual_proba(self, X):
-        ''' Predict class probabilities for each individual learner in the ensemble without considering the weights.
+        """ Predict class probabilities for each individual learner in the ensemble without considering the weights.
 
         Parameters
         ----------
@@ -132,7 +131,7 @@ class PruningClassifier(ABC):
         -------
         y : array, shape (n_samples,C)
             The predicted class probabilities for each learner.
-        '''
+        """
         assert self.estimators_ is not None, "Call prune before calling predict_proba!"
         all_proba = []
 
@@ -147,7 +146,7 @@ class PruningClassifier(ABC):
             return np.array(all_proba)
 
     def predict_proba(self, X):
-        ''' Predict class probabilities using the pruned model.
+        """ Predict class probabilities using the pruned model.
 
         Parameters
         ----------
@@ -158,14 +157,14 @@ class PruningClassifier(ABC):
         -------
         y : array, shape (n_samples,C)
             The predicted class probabilities. 
-        '''
+        """
         all_proba = self._individual_proba(X)
         scaled_prob = np.array([w * p for w,p in zip(all_proba, self.weights_)])
         combined_proba = np.sum(scaled_prob, axis=0)
         return combined_proba
 
     def predict(self, X):
-        ''' Predict classes using the pruned model.
+        """ Predict classes using the pruned model.
 
         Parameters
         ----------
@@ -177,6 +176,6 @@ class PruningClassifier(ABC):
         y : array, shape (n_samples,)
             The predicted classes. 
 
-        '''
+        """
         proba = self.predict_proba(X)
         return self.classes_.take(proba.argmax(axis=1), axis=0)

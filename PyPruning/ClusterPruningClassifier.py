@@ -13,32 +13,39 @@ from sklearn.metrics import pairwise_distances, pairwise_distances_argmin_min
 
 from .PruningClassifier import PruningClassifier
 
-def kmeans(proba, n_estimators, **kwargs):
-    proba = proba.reshape(proba.shape[0],proba.shape[1]*proba.shape[2])
+def kmeans(X, n_estimators, **kwargs):
+    """
+    Perform kmeans clustering on given data `X`. The original publication (see below) considers the predictions of each estimator which can be achieved by setting `cluster_mode = "predictions"` in the ClusterPruningClassifier. Second, the original publication discusses binary classification problems. In this multi-class implementation the proba/predictions for each class are flattened before clustering.
+
+    Reference:
+        Lazarevic, A., & Obradovic, Z. (2001). Effective pruning of neural network classifier ensembles. Proceedings of the International Joint Conference on Neural Networks, 2(January), 796–801. https://doi.org/10.1109/ijcnn.2001.939461pdf
+    """
     kmeans = KMeans(n_clusters = n_estimators, **kwargs)
-    assignments = kmeans.fit_predict(proba)
+    assignments = kmeans.fit_predict(X)
     return assignments
 
-def agglomerative(proba, n_estimators, **kwargs):
-    proba = proba.reshape(proba.shape[0],proba.shape[1]*proba.shape[2])
+def agglomerative(X, n_estimators, **kwargs):
+    """
+    Perform agglomerative clustering on the given data `X`. The original publication (see below) considers the accuracy / error of each estimator which can be achieved by setting `cluster_mode = "accuracy"` in the ClusterPruningClassifier. 
+
+
+    Reference:
+    """
     agg = AgglomerativeClustering(n_clusters = n_estimators, distance_threshold = None, **kwargs)
-    assignments = agg.fit_predict(proba)
+    assignments = agg.fit_predict(X)
     return assignments
 
-def centroid_selector(proba, assignments, target):
-    proba = proba.reshape(proba.shape[0],proba.shape[1]*proba.shape[2])
-
-    # First compute the centroid given the assignments.
+def centroid_selector(X, assignments, target):
     # TODO centroids are already known if kmeans was used, but agglomerative does not know / care about centroids
     clf = NearestCentroid()
-    clf.fit(proba, assignments)
+    clf.fit(X, assignments)
     centroids = clf.centroids_
 
-    centroid_idx,_ = pairwise_distances_argmin_min(centroids, proba)
+    centroid_idx,_ = pairwise_distances_argmin_min(centroids, X)
 
     return centroid_idx
 
-def accuracy(proba, assignments, target):
+def accuracy(X, assignments, target):
     idx_per_centroid = {}
     for i, a in enumerate(assignments):
         if a not in idx_per_centroid:
@@ -48,20 +55,24 @@ def accuracy(proba, assignments, target):
     selected_idx = []
     
     for c, idx in idx_per_centroid.items():
-        accs = [ (proba[i,:].argmax(axis=1) == target).mean() for i in idx ]
+        accs = [ (X[i,:].argmax(axis=1) == target).mean() for i in idx ]
         selected_idx.append(np.argmax(accs))
 
     return selected_idx
 
-def largest_mean_distance(proba, assignments, target, metric = 'euclidean', n_jobs = None):
+def largest_mean_distance(X, assignments, target, metric = 'euclidean', n_jobs = None):
+    """
+    Compute the largest 
+
+    
+    """
     idx_per_centroid = {}
     for i, a in enumerate(assignments):
         if a not in idx_per_centroid:
             idx_per_centroid[a] = []
         idx_per_centroid[a].append(i)
     
-    proba = proba.reshape(proba.shape[0],proba.shape[1]*proba.shape[2])
-    all_distances = pairwise_distances(proba, metric = metric, n_jobs = n_jobs)
+    all_distances = pairwise_distances(X, metric = metric, n_jobs = n_jobs)
     
     selected_indxed = []
     for c, idx in idx_per_centroid.items():
@@ -76,7 +87,7 @@ def largest_mean_distance(proba, assignments, target, metric = 'euclidean', n_jo
 
     return selected_indxed
 
-def random_selector(proba, assignments, target):
+def random_selector(X, assignments, target):
     idx_per_centroid = {}
     for i, a in enumerate(assignments):
         if a not in idx_per_centroid:
@@ -90,57 +101,62 @@ def random_selector(proba, assignments, target):
     return selected_idx
 
 class ClusterPruningClassifier(PruningClassifier):
-    ''' Clustering-based pruning. 
+    """ Clustering-based pruning. 
     
-    Clustering-based methods follow a two-step procedure. In first step, they cluster the estimators in the ensemble according to some clustering algorithm. Then, in the second step some representatives form each cluster are selected. 
+    Clustering-based methods follow a two-step procedure. In first step, they cluster the estimators in the ensemble according to some clustering algorithm. Then, in the second, a representative form each cluster is selected to form the pruned ensemble. More formally, clustering-based pruning uses the following optimization problem:
 
-    $$
-    \begin{align}
-        &\arg\min_{w\in \{0,1\}^M} \sum_{(x,y) \in \mathcal S} d(\mu_{c(i)}(x) - h_i(x)) + w_i \ell(\mu_{c(i)}, h(x), y) \\ \nonumber
-        &\text{~st~} c(i) = \arg\min \left \{\sum_{(x,y) \in \mathcal S} d(\mu_{j}(x) - h_i(x)) | j=1,\dots,M \right \} \\ \nonumber
-        &\phantom{\text{~st~}} \lVert w \rVert_0 = K, \forall w_i,w_j \not= 0 \wedge i \not= j: c(i) \not= c(j)
-    \end{align}
-    $$
-    where $\{\mu_1,\dots,\mu_K\} \subseteq H$ are the cluster centers and $d\colon \mathbb R^C \times \mathbb R^C \to \mathbb R$ is a distance metric.
+    In this implementation, you must provide two functions
 
-    order the estimators in the ensemble according to their performance. In contrast to ranking-based pruning however they also consider the already selected sub-ensemble for selecting the next classifier. They start with the empty ensemble and then greedily select in each round that classifier which minimizes a loss function the most:
+    - `cluster_estimators`: A function which clusters the estimators given their representation X (see `cluster_mode` for details) and return the cluster assignment for each estimator. An example of kmeans clustering would be:
+    .. code-block:: python
 
-    $$
-    \\arg\\min_{h} L\\left(\\frac{K-1}{K} f(x) + \\frac{1}{K} \\cdot h(x), y\\right)
-    $$
+        def kmeans(X, n_estimators, **kwargs):
+            kmeans = KMeans(n_clusters = n_estimators, **kwargs)
+            assignments = kmeans.fit_predict(X)
+            return assignments 
+    
+    - `select_estimators`: A function which selects the estimators from the clustering and returns the selected indices. An example of which selects the centroids would be:
+    .. code-block:: python
 
-    where f is the already selected ensemble with K-1 members and h is the newly selected member. In this sense, this selection re-order the classifiers in the ensemble and hence sometimes the name ordering-based pruning is used. In this implementation a loss function receives 4 parameters:
+        def centroid_selector(x, assignments, target, **kwargs):
 
-    - `i` (int): The classifier which should be rated
-    - `ensemble_proba` (A (M, N, C) matrix ): All N predictions of all M classifier in the entire ensemble for all C classes
-    - `selected_models` (list of ints): All models which are selected so far
-    - `target` (list / array): A list / array of class targets.
+            clf = NearestCentroid()
+            clf.fit(x, assignments)
+            centroids = clf.centroids_
 
-    A simple loss function which minimizes the overall sub-ensembles error would be
+            centroid_idx,_ = pairwise_distances_argmin_min(centroids, x)
 
-    ```Python
-        def error(i, ensemble_proba, selected_models, target):
-            iproba = ensemble_proba[i,:,:]
-            sub_proba = ensemble_proba[selected_models, :, :]
-            pred = 1.0 / (1 + len(sub_proba)) * (sub_proba.sum(axis=0) + iproba)
-            return (pred.argmax(axis=1) != target).mean() 
-    ```
+            return centroid_idx 
+
+    If you want to pass additional parameter to `cluster_estimators` or `select_estimators` you can do so via the `cluster_options` and `selector_options` respectively. These parameters are passed via **kwargs to the functions so please make sure that they are either `None` or valid Python dictionaries. 
 
     Attributes
     ----------
     n_estimators : int, default is 5
         The number of estimators which should be selected.
-    metric : function, default is error
-        A function that assigns a score (smaller is better) to each classifier which is then used for selecting the next classifier in each round
-    n_jobs : int, default is 8
-        The number of threads used for computing the individual metrics for each classifier.
-    '''
-    def __init__(self, cluster_estimators = kmeans, select_estimators = random_selector, cluster_options = None, selector_options = None, n_estimators = 5):
+    cluster_estimators : function, default is kmeans
+        A function that clusters the classifier.
+    select_estimators : function, default is random_selector
+        A function that selects representatives from each cluster
+    cluster_mode: str, default is probabilities"
+        The representation of each estimator used for clustering. Must be one of {"probabilities", "predictions", "accuracy"}:
+            - "probabilities": Uses the raw probability output of each estimator for clustering. For multi-class problems the vector is "flattened" to a N * C vector where N is the number pf data points in the pruning set and C is the number of classes  
+            - "predictions": Same as "probabilities", but uses the predictions instead of the probabilities.
+            - "accuracy": Computes the accuracy of each estimator on each datapoint and clusters uses the corresponding vector for clustering. 
+    cluster_options : dict, default is None
+        Additional options passed to `cluster_estimators`
+    selector_options : dict, default is None
+        Additional options passed to `select_estimators`
+    """
+    def __init__(self, n_estimators = 5, cluster_estimators = kmeans, select_estimators = random_selector, cluster_mode = "probabilities", cluster_options = None, selector_options = None):
         super().__init__()
+
+        assert cluster_mode in ["probabilities", "predictions", "accuracy"]
 
         self.n_estimators = n_estimators
         self.cluster_estimators = cluster_estimators
         self.select_estimators = select_estimators
+        self.cluster_mode = cluster_mode
         if cluster_options is None:
             self.cluster_options = {}
         else:
@@ -155,6 +171,21 @@ class ClusterPruningClassifier(PruningClassifier):
         n_received = len(proba)
         if self.n_estimators >= n_received:
             return range(0, n_received), [1.0 / n_received for _ in range(n_received)]
+
+        if self.cluster_mode == "predictions":
+            # See https://stackoverflow.com/questions/44143438/numpy-indexing-set-1-to-max-value-and-zeros-to-all-others
+            tmp = np.zeros_like(proba)
+            d1 = np.arange(proba.shape[0])[:,None]
+            d2 = np.arange(proba.shape[1])
+            idx = proba.argmax(axis=2)
+            tmp[d1,d2,idx] = 1
+            proba = tmp
+            proba = proba.reshape(proba.shape[0],proba.shape[1]*proba.shape[2])
+        elif self.cluster_mode == "accuracy":
+            preds = proba.argmax(axis=2)
+            proba = (preds == target).astype(int)
+        else:
+            proba = proba.reshape(proba.shape[0],proba.shape[1]*proba.shape[2])
 
         assignments = self.cluster_estimators(proba, self.n_estimators, **self.cluster_options)
         

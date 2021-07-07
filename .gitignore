@@ -2,3 +2,11 @@ __pycache__
 .vscode
 *.egg-info
 magic04.data
+docs/_api
+docs/api
+# docs/html
+docs/_build
+docs/latex
+docs/templates
+docs/xml
+docs/make.bat
