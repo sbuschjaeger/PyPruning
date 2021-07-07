@@ -1,14 +1,18 @@
 # PyPruning
+
+[![Building docs](https://github.com/sbuschjaeger/PyPruning/actions/workflows/docs.yml/badge.svg)](https://github.com/sbuschjaeger/PyPruning/actions/workflows/docs.yml)
+[![tests](https://github.com/sbuschjaeger/PyPruning/actions/workflows/tests.yml/badge.svg)](https://github.com/sbuschjaeger/PyPruning/actions/workflows/tests.yml)
+
 This package provides implementations for some common ensemble pruning algorithms. Pruning algorithms aim to select the best subset of an trained ensemble to minimize memory consumption and maximize accuracy. Currently, six types of pruning algorithms are implemented:
 
-- :class:`~PyPruning.RandomPruningClassifier`: Selects a random subset of classifiers. This is mainly used as a baseline.
-- :class:`~PyPruning.RankPruningClassifier`: Rank each classifier according to a given metric and then select the best K classifier.
-- :class:`~PyPruning.ClusterPruningClassifier`: Cluster the classifiers according to a clustering method and then select a representative from each cluster to from the sub-ensemble.
-- :class:`~PyPruning.GreedyPruningClassifier`: Proceeds in rounds and selects the best classifier in each round given the already selected sub-ensemble. 
-- :class:`~PyPruning.MIQPPruningClassifier`: Constructs a mixed-integer quadratic problem and optimizes this to compute the best sub ensemble. 
-- :class:`~PyPruning.ProxPruningClassifier`: Minimize a (regularized) loss function via (stochastic) proximal gradient descent over the ensembles weights. 
+- :class:`RandomPruningClassifier`: Selects a random subset of classifiers. This is mainly used as a baseline.
+- :class:`RankPruningClassifier`: Rank each classifier according to a given metric and then select the best K classifier.
+- :class:`ClusterPruningClassifier`: Cluster the classifiers according to a clustering method and then select a representative from each cluster to from the sub-ensemble.
+- :class:`GreedyPruningClassifier`: Proceeds in rounds and selects the best classifier in each round given the already selected sub-ensemble. 
+- :class:`MIQPPruningClassifier`: Constructs a mixed-integer quadratic problem and optimizes this to compute the best sub ensemble. 
+- :class:`ProxPruningClassifier`: Minimize a (regularized) loss function via (stochastic) proximal gradient descent over the ensembles weights. 
 
-For more details please have a look at the [documentation](). 
+For more details please have a look at the [documentation](https://sbuschjaeger.github.io/PyPruning/html/root.html). 
 
 # How to install
 

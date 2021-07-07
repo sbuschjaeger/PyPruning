@@ -1,4 +1,4 @@
-name: test-digits
+name: tests
 
 on:
   push:
