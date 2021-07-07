@@ -1,0 +1,308 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Pruning an ensemble &mdash; PyPruning  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Greedy" href="greedy.html" />
+    <link rel="prev" title="PyPruning" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> PyPruning
+          
+
+          
+            
+            <img src="_static/pruning-logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">PyPruning</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Pruning an ensemble</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="greedy.html">Greedy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rank.html">Ranking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cluster.html">Clustering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MIQP.html">Mixed Quadratic Programming</a></li>
+<li class="toctree-l2"><a class="reference internal" href="prox.html">Proximal Gradient Descent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="random.html">Random</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="extending.html">Extending PyPruning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="papers.html">Reproducing results from literature</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PyPruning</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Pruning an ensemble</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            
+              <a href="https://github.com/sbuschjaeger/pypruning/blob/master/docs/available.rst" class="fa fa-github"> Edit on GitHub</a>
+            
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pruning-an-ensemble">
+<h1>Pruning an ensemble<a class="headerlink" href="#pruning-an-ensemble" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<p>In general, there are four categories of pruning methods currently available</p>
+<ul class="simple">
+<li><p>Ranking based pruning</p></li>
+<li><p>Greedy pruning</p></li>
+<li><p>Clustering based pruning</p></li>
+<li><p>Optimization based pruning</p></li>
+</ul>
+<p>Optimization based approaches can further be decomposed into different approaches for optimization:</p>
+<ul class="simple">
+<li><p>Mixed Quadratic Integer Programming</p></li>
+<li><p>Gradient descent and related approaches</p></li>
+</ul>
+<p>Last, we found that a random selection also serves as a decent baseline leading to a total of 6 different pruning methods:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="random.html#module-PyPruning.RandomPruningClassifier" title="PyPruning.RandomPruningClassifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">RandomPruningClassifier</span></code></a>: Selects a random subset of classifiers. This is mainly used as a baseline.</p></li>
+<li><p><a class="reference internal" href="rank.html#module-PyPruning.RankPruningClassifier" title="PyPruning.RankPruningClassifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">RankPruningClassifier</span></code></a>: Rank each classifier according to a given metric and then select the best K classifier.</p></li>
+<li><p><a class="reference internal" href="cluster.html#module-PyPruning.ClusterPruningClassifier" title="PyPruning.ClusterPruningClassifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">ClusterPruningClassifier</span></code></a>: Cluster the classifiers according to a clustering method and then select a representative from each cluster to from the sub-ensemble.</p></li>
+<li><p><a class="reference internal" href="greedy.html#module-PyPruning.GreedyPruningClassifier" title="PyPruning.GreedyPruningClassifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">GreedyPruningClassifier</span></code></a>: Proceeds in rounds and selects the best classifier in each round given the already selected sub-ensemble.</p></li>
+<li><p><a class="reference internal" href="MIQP.html#module-PyPruning.MIQPPruningClassifier" title="PyPruning.MIQPPruningClassifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">MIQPPruningClassifier</span></code></a>: Constructs a mixed-integer quadratic problem and optimizes this to compute the best sub ensemble.</p></li>
+<li><p><a class="reference internal" href="prox.html#module-PyPruning.ProxPruningClassifier" title="PyPruning.ProxPruningClassifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProxPruningClassifier</span></code></a>: Minimize a (regularized) loss function via (stochastic) proximal gradient descent over the ensembles weights.</p></li>
+</ul>
+<p>There is a decent amount of different pruning methods available in literature which mostly differs by the scoring / loss functions used to score the performance of sub-ensembles. Thus, we tried to make our implementation as flexible as possible. Most methods support custom metrics so that you can implement your pruning methods. For more information please check out <a class="reference internal" href="extending.html"><span class="doc">Extending PyPruning</span></a>.</p>
+<p>Every pruning method offers a <code class="docutils literal notranslate"><span class="pre">prune</span></code>, <code class="docutils literal notranslate"><span class="pre">predict_proba</span></code> and <code class="docutils literal notranslate"><span class="pre">predict</span></code> method. Central for pruning is the <code class="docutils literal notranslate"><span class="pre">prune(self,</span> <span class="pre">X,</span> <span class="pre">y,</span> <span class="pre">estimators)</span></code> method, where</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">X</span></code> are the pruning examples,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">y</span></code> are the corresponding pruning targets</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">estimators</span></code> is the list of estimators to be pruned.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">classes</span></code> a list of classes this classifier was trained on which corresponding to the order of <cite>predict_proba</cite>. If this is <cite>None</cite> we try to infer this from the base estimators</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">n_classes</span></code> the total number of classes. If this is <code class="docutils literal notranslate"><span class="pre">None</span></code> we try to infer this from the base estimators</p></li>
+</ul>
+<p>We assume that each estimator in <code class="docutils literal notranslate"><span class="pre">estimators</span></code> supports <code class="docutils literal notranslate"><span class="pre">copy.deepcopy()</span></code> and offers the following functions / fields:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">predict(X)</span></code>: Returns the class predictions for each example in X. Result should be <code class="docutils literal notranslate"><span class="pre">(X.shape[0],</span> <span class="pre">)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">predict_proba(X)</span></code>: Returns the class probabilities for each example in X. Result should be <code class="docutils literal notranslate"><span class="pre">(X.shape[0],</span> <span class="pre">n_classes_)</span></code> where <code class="docutils literal notranslate"><span class="pre">n_classes_</span></code> is the number of classes the classifier was trained on.</p></li>
+</ul>
+<p><strong>Note</strong>: These requirements are usually met by scikit-learn and scikit-learn compatible estimators, but our code is currently does not implement the scikit-learn interface for BaseEstimators. Differently put: You should be able to prune any scikit-learn estimators, but we do not guarantee that the pruned ensembles fully integrates into scikit-learn. We try to enhance support for other libraries including scikit-learn in the future.</p>
+<p>A complete example might look like this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load some data</span>
+<span class="n">data</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">load_digits</span><span class="p">(</span><span class="n">return_X_y</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Perform a test / train / prune split</span>
+<span class="n">XTP</span><span class="p">,</span> <span class="n">Xtest</span><span class="p">,</span> <span class="n">ytp</span><span class="p">,</span> <span class="n">ytest</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+<span class="n">Xtrain</span><span class="p">,</span> <span class="n">Xprune</span><span class="p">,</span> <span class="n">ytrain</span><span class="p">,</span> <span class="n">yprune</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span><span class="n">XTP</span><span class="p">,</span> <span class="n">ytp</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+
+<span class="n">n_base</span> <span class="o">=</span> <span class="mi">128</span>
+<span class="n">n_prune</span> <span class="o">=</span> <span class="mi">8</span>
+
+<span class="c1"># Train a &quot;large&quot; initial random forest</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">RandomForestClassifier</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_base</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">XTP</span><span class="p">,</span> <span class="n">ytp</span><span class="p">)</span>
+<span class="n">pred</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">Xtest</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Accuracy of RF trained on XTrain + XPrune with </span><span class="si">{}</span><span class="s2"> estimators: </span><span class="si">{}</span><span class="s2"> %&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_base</span><span class="p">,</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="n">accuracy_score</span><span class="p">(</span><span class="n">ytest</span><span class="p">,</span> <span class="n">pred</span><span class="p">)))</span>
+
+<span class="c1"># Train a &quot;small&quot; initial random forest for reference</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">RandomForestClassifier</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_base</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">Xtrain</span><span class="p">,</span> <span class="n">ytrain</span><span class="p">)</span>
+<span class="n">pred</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">Xtest</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Accuracy of RF trained on XTrain only with </span><span class="si">{}</span><span class="s2"> estimators: </span><span class="si">{}</span><span class="s2"> %&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_base</span><span class="p">,</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="n">accuracy_score</span><span class="p">(</span><span class="n">ytest</span><span class="p">,</span> <span class="n">pred</span><span class="p">)))</span>
+
+<span class="c1"># Use different pruning methods to prune the large forest</span>
+<span class="n">pruned_model</span> <span class="o">=</span> <span class="n">RandomPruningClassifier</span><span class="p">(</span><span class="n">n_estimators</span> <span class="o">=</span> <span class="n">n_prune</span><span class="p">)</span>
+<span class="n">pruned_model</span><span class="o">.</span><span class="n">prune</span><span class="p">(</span><span class="n">Xprune</span><span class="p">,</span> <span class="n">yprune</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">estimators_</span><span class="p">)</span>
+<span class="n">pred</span> <span class="o">=</span> <span class="n">pruned_model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">Xtest</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Accuracy of RandomPruningClassifier with </span><span class="si">{}</span><span class="s2"> estimators: </span><span class="si">{}</span><span class="s2"> %&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_prune</span><span class="p">,</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="n">accuracy_score</span><span class="p">(</span><span class="n">ytest</span><span class="p">,</span> <span class="n">pred</span><span class="p">)))</span>
+
+<span class="n">pruned_model</span> <span class="o">=</span> <span class="n">GreedyPruningClassifier</span><span class="p">(</span><span class="n">n_prune</span><span class="p">,</span> <span class="n">single_metric</span> <span class="o">=</span> <span class="n">error</span><span class="p">)</span>
+<span class="n">pruned_model</span><span class="o">.</span><span class="n">prune</span><span class="p">(</span><span class="n">Xtrain</span><span class="p">,</span> <span class="n">ytrain</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">estimators_</span><span class="p">)</span>
+<span class="n">pred</span> <span class="o">=</span> <span class="n">pruned_model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">Xtest</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;GreedyPruningClassifier with </span><span class="si">{}</span><span class="s2"> estimators and </span><span class="si">{}</span><span class="s2"> metric is </span><span class="si">{}</span><span class="s2"> %&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_prune</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="n">accuracy_score</span><span class="p">(</span><span class="n">ytest</span><span class="p">,</span> <span class="n">pred</span><span class="p">)))</span>
+
+<span class="n">pruned_model</span> <span class="o">=</span> <span class="n">MIQPPruningClassifier</span><span class="p">(</span><span class="n">n_prune</span><span class="p">,</span> <span class="n">single_metric</span> <span class="o">=</span> <span class="n">error</span><span class="p">)</span>
+<span class="n">pruned_model</span><span class="o">.</span><span class="n">prune</span><span class="p">(</span><span class="n">Xtrain</span><span class="p">,</span> <span class="n">ytrain</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">estimators_</span><span class="p">)</span>
+<span class="n">pred</span> <span class="o">=</span> <span class="n">pruned_model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">Xtest</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;MIQPPruningClassifier with </span><span class="si">{}</span><span class="s2"> estimators and </span><span class="si">{}</span><span class="s2"> metric is </span><span class="si">{}</span><span class="s2"> %&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_prune</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="n">accuracy_score</span><span class="p">(</span><span class="n">ytest</span><span class="p">,</span> <span class="n">pred</span><span class="p">)))</span>
+</pre></div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="greedy.html" class="btn btn-neutral float-right" title="Greedy" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="index.html" class="btn btn-neutral float-left" title="PyPruning" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Sebastian Buschjäger.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

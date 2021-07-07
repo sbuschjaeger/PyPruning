@@ -1,0 +1,364 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Proximal Gradient Descent &mdash; PyPruning  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Random" href="random.html" />
+    <link rel="prev" title="Mixed Quadratic Programming" href="MIQP.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> PyPruning
+          
+
+          
+            
+            <img src="_static/pruning-logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">PyPruning</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="available.html">Pruning an ensemble</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="greedy.html">Greedy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rank.html">Ranking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cluster.html">Clustering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MIQP.html">Mixed Quadratic Programming</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Proximal Gradient Descent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="random.html">Random</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="extending.html">Extending PyPruning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="papers.html">Reproducing results from literature</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PyPruning</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="available.html">Pruning an ensemble</a> &raquo;</li>
+        
+      <li>Proximal Gradient Descent</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            
+              <a href="https://github.com/sbuschjaeger/pypruning/blob/master/docs/prox.rst" class="fa fa-github"> Edit on GitHub</a>
+            
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-PyPruning.ProxPruningClassifier">
+<span id="proximal-gradient-descent"></span><h1>Proximal Gradient Descent<a class="headerlink" href="#module-PyPruning.ProxPruningClassifier" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="PyPruning.ProxPruningClassifier.ProxPruningClassifier">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">PyPruning.ProxPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">ProxPruningClassifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cross-entropy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensemble_regularizer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hard-L0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_ensemble_reg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tree_regularizer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'node'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_tree_reg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize_weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epochs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">update_leaves</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_every_epochs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.ProxPruningClassifier.ProxPruningClassifier" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="extending.html#PyPruning.PruningClassifier.PruningClassifier" title="PyPruning.PruningClassifier.PruningClassifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyPruning.PruningClassifier.PruningClassifier</span></code></a></p>
+<p>(Heterogeneous) Pruning via Proximal Gradient Descent</p>
+<p>This pruning method directly minimizes a constrained loss function <span class="math notranslate nohighlight">\(L\)</span> including a regularizer <span class="math notranslate nohighlight">\(R_1\)</span> via (stochastic) proximal gradient descent. There are two sets of constraints available. When soft constraints are used, then the following function is minimized</p>
+<div class="math notranslate nohighlight">
+\[\arg\min_w L \left(\sum_{i=1}^M w_i h_i(x), y\right) + \lambda_1 \sum_{i=1}^K w_i R_1(h_i) + \lambda_2 R_2(w)\]</div>
+<p>When hard constraints are used, then the following objective is minimized</p>
+<div class="math notranslate nohighlight">
+\[\arg\min_w L \left(\sum_{i=1}^M w_i h_i(x), y\right) + \lambda_1 \sum_{i=1}^K w_i R_1(h_i) \text{ s.t. } R_2(w) \le \lambda_2\]</div>
+<p>The regularizer <span class="math notranslate nohighlight">\(R_1\)</span> is used to select smaller trees, whereas the regularizer <span class="math notranslate nohighlight">\(R_2\)</span> is used to select fewer trees from the ensemble.</p>
+<dl>
+<dt>step_size<span class="classifier">float, default is 0.1</span></dt><dd><p>The step_size used for stochastic gradient descent for opt</p>
+</dd>
+<dt>loss<span class="classifier">str, default is <code class="docutils literal notranslate"><span class="pre">&quot;mse&quot;</span></code></span></dt><dd><p>The loss function for training. Should be one of <code class="docutils literal notranslate"><span class="pre">{&quot;mse&quot;,</span> <span class="pre">&quot;cross-entropy&quot;,</span> <span class="pre">&quot;hinge2&quot;}</span></code>.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;mse&quot;</span></code>: <span class="math notranslate nohighlight">\(L(f(x),y) = \sum_{i=1}^C (f(x)_i - y_i)^2\)</span></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;cross-entropy&quot;</span></code>: <span class="math notranslate nohighlight">\(L(f(x),y) = \sum_{i=1}^C y_i \log(s(f(x))_i)\)</span>, where <span class="math notranslate nohighlight">\(s\)</span> is the softmax function.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;hinge2&quot;</span></code>: <span class="math notranslate nohighlight">\(L(f(x),y) = \sum_{i=1}^C \max(0, 1 - y_i \cdot f(x)_i )^2\)</span></p></li>
+</ul>
+</dd>
+<dt>normalize_weights<span class="classifier">boolean, default is True</span></dt><dd><p>True if nonzero weights should be projected onto the probability simplex, that is they should sum to 1.</p>
+</dd>
+<dt>ensemble_regularizer<span class="classifier">str or None, default is <code class="docutils literal notranslate"><span class="pre">&quot;hard-L0&quot;</span></code></span></dt><dd><p>The ensemble_regularizer <span class="math notranslate nohighlight">\(R_2\)</span>. This regularizer is used to select fewer members from the ensembles. It should be one of <code class="docutils literal notranslate"><span class="pre">{None,</span> <span class="pre">&quot;L0&quot;,</span> <span class="pre">&quot;L1&quot;,</span> <span class="pre">&quot;hard-L0&quot;}</span></code></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">None</span></code>: No constraints are applied during ensemble selection.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;L0&quot;</span></code>: Apply <span class="math notranslate nohighlight">\(R_2(w) = || w ||_0\)</span> regularization (implemented via <code class="docutils literal notranslate"><span class="pre">numpy.linalg.norm</span></code> ). The regularization strength <span class="math notranslate nohighlight">\(\lambda_2\)</span> scales the regularizer in this case.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;L1&quot;</span></code>: Apply <span class="math notranslate nohighlight">\(R_2(w) = || w ||_1\)</span> regularization (implemented via <code class="docutils literal notranslate"><span class="pre">numpy.linalg.norm</span></code> ). The regularization strength <span class="math notranslate nohighlight">\(\lambda_2\)</span> scales the regularizer in this case.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;hard-L0&quot;</span></code>: Apply <span class="math notranslate nohighlight">\(R_2(w) = || w ||_0 \le \lambda_2\)</span> regularization. This is the “hard” version of the <code class="docutils literal notranslate"><span class="pre">L0</span></code> regularization. The regularization strength <span class="math notranslate nohighlight">\(\lambda_2\)</span> is used a an upper bound in this case.</p></li>
+</ul>
+</dd>
+<dt>l_ensemble_reg<span class="classifier">float, default is 0</span></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">ensemble_regularizer</span></code> regularization strength <span class="math notranslate nohighlight">\(\lambda_2\)</span>. If <code class="docutils literal notranslate"><span class="pre">&quot;L0&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;L1&quot;</span></code> is selected, then <code class="docutils literal notranslate"><span class="pre">l_ensemble_reg</span></code> is the regularization strength which scales the regularizer. If <code class="docutils literal notranslate"><span class="pre">&quot;hard-L0&quot;</span></code> is selected, then <code class="docutils literal notranslate"><span class="pre">l_ensemble_reg</span></code> is the maximum number of members in pruned ensemble.</p>
+</dd>
+<dt>tree_regularizer<span class="classifier">str or <code class="docutils literal notranslate"><span class="pre">None</span></code>, default is <code class="docutils literal notranslate"><span class="pre">&quot;node&quot;</span></code></span></dt><dd><p>The tree_regularizer <span class="math notranslate nohighlight">\(R_1\)</span>. This regularizer is used to select smaller trees. Should be one of <code class="docutils literal notranslate"><span class="pre">{None,&quot;node&quot;}</span></code></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">None</span></code>: No constraints are applied during ensemble selection.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;node&quot;</span></code>: Apply <span class="math notranslate nohighlight">\(R_1(h_i) = n_i\)</span> regularization where <span class="math notranslate nohighlight">\(n_i\)</span> is the number of nodes in the tree.</p></li>
+</ul>
+</dd>
+<dt>l_tree_reg<span class="classifier">float, default is 0</span></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">tree_regularizer</span></code> regularization strength <span class="math notranslate nohighlight">\(\lambda_1\)</span>. The <code class="docutils literal notranslate"><span class="pre">tree_regularizer</span></code> is scaled by this value.</p>
+</dd>
+<dt>batch_size: int, default is 256</dt><dd><p>The batch sized used for PSGD</p>
+</dd>
+<dt>epochs<span class="classifier">int, default is 1</span></dt><dd><p>The number of epochs PSGD is run.</p>
+</dd>
+<dt>verbose<span class="classifier">boolean, default is False</span></dt><dd><p>If true, shows a progress bar via tqdm and some statistics</p>
+</dd>
+<dt>update_leaves<span class="classifier">boolean, default is False</span></dt><dd><p>If true, then leave nodes of each tree are also updated via PSGD.</p>
+</dd>
+<dt>out_path: str or None, default is None</dt><dd><p>If not None, then statistics are stored in a file called <code class="docutils literal notranslate"><span class="pre">$out_path/epoch_$i.npy</span></code> for epoch $i.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="PyPruning.ProxPruningClassifier.ProxPruningClassifier.next">
+<span class="sig-name descname"><span class="pre">next</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proba</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.ProxPruningClassifier.ProxPruningClassifier.next" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyPruning.ProxPruningClassifier.ProxPruningClassifier.num_parameters">
+<span class="sig-name descname"><span class="pre">num_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.ProxPruningClassifier.ProxPruningClassifier.num_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the total number of decision nodes across all trees of the entire ensemble for all trees with nonzero weight.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyPruning.ProxPruningClassifier.ProxPruningClassifier.num_trees">
+<span class="sig-name descname"><span class="pre">num_trees</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.ProxPruningClassifier.ProxPruningClassifier.num_trees" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the number of nonzero weights</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PyPruning.ProxPruningClassifier.ProxPruningClassifier.prune_">
+<span class="sig-name descname"><span class="pre">prune_</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proba</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.ProxPruningClassifier.ProxPruningClassifier.prune_" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prunes the ensemble using the ensemble predictions proba and the pruning data targets / data. If the pruning method requires access to the original ensemble members you can access these via <a href="#id1"><span class="problematic" id="id2">self.estimators_</span></a>. Note that <a href="#id3"><span class="problematic" id="id4">self.estimators_</span></a> is already a deep-copy of the estimators so you are also free to change the estimators in this list if you want to.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>proba</strong> (<em>numpy matrix</em>) – A (N,M,C) matrix which contains the individual predictions of each ensemble member on the pruning data. Each ensemble prediction is generated via predict_proba. N is size of the pruning data, M the size of the base ensemble and C is the number of classes</p></li>
+<li><p><strong>target</strong> (<em>numpy array of ints</em>) – A numpy array or list of N integers where each integer represents the class for each example. Classes should start with 0, so that for C classes the integer 0,1,…,C-1 are used</p></li>
+<li><p><strong>data</strong> (<em>numpy matrix</em><em>, </em><em>optional</em>) – The data points in a (N, M) matrix on which the proba has been computed, where N is the pruning set size and M is the number of classifier in the original ensemble. This can be used by a pruning method if required, but most methods do not require the actual data points but only the individual predictions.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>A tuple of indices and weights (idx, weights) with the following properties</em></p></li>
+<li><p><strong>idx</strong> (<em>numpy array / list of ints</em>) – A list of integers which classifier should be selected from <a href="#id5"><span class="problematic" id="id6">self.estimators_</span></a>. Any changes made to <a href="#id7"><span class="problematic" id="id8">self.estimators_</span></a> are also reflected here, so make sure that the order of classifier in proba and <a href="#id9"><span class="problematic" id="id10">self.estimators_</span></a> remains the same (or you return idx accordingly)</p></li>
+<li><p><strong>weights</strong> (<em>numpy array / list of floats</em>) – The individual weights for each selected classifier. The size of this array should match the size of idx (and not the size of the original base ensemble).</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PyPruning.ProxPruningClassifier.create_mini_batches">
+<span class="sig-prename descclassname"><span class="pre">PyPruning.ProxPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">create_mini_batches</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shuffle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.ProxPruningClassifier.create_mini_batches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an mini-batch like iterator for the given inputs / target / data. Shamelessly copied from <a class="reference external" href="https://stackoverflow.com/questions/38157972/how-to-implement-mini-batch-gradient-descent-in-python">https://stackoverflow.com/questions/38157972/how-to-implement-mini-batch-gradient-descent-in-python</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inputs</strong> (<em>array-like vector</em><em> or </em><em>matrix</em>) – The inputs to be iterated in mini batches</p></li>
+<li><p><strong>targets</strong> (<em>array-like vector</em><em> or </em><em>matrix</em>) – The targets to be iterated in mini batches</p></li>
+<li><p><strong>data</strong> (<em>array-like vector</em><em> or </em><em>matrix</em>) – The data to be iterated in mini batches</p></li>
+<li><p><strong>batch_size</strong> (<em>int</em>) – The mini batch size</p></li>
+<li><p><strong>shuffle</strong> (<em>bool</em><em>, </em><em>default False</em>) – If True shuffle the batches</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PyPruning.ProxPruningClassifier.to_prob_simplex">
+<span class="sig-prename descclassname"><span class="pre">PyPruning.ProxPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">to_prob_simplex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.ProxPruningClassifier.to_prob_simplex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Projects the given vector to the probability simplex so that <span class="math notranslate nohighlight">\(\sum_{i=1}^k x_i = 1, x_i \in [0,1]\)</span>.</p>
+<dl class="simple">
+<dt>Reference</dt><dd><p>Weiran Wang and Miguel A. Carreira-Perpinan (2013) Projection onto the probability simplex: An efficient algorithm with a simple proof, and an application. <a class="reference external" href="https://eng.ucmerced.edu/people/wwang5/papers/SimplexProj.pdf">https://eng.ucmerced.edu/people/wwang5/papers/SimplexProj.pdf</a></p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>array-like vector with k entries</em>) – The vector to be projected.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>u</strong> – The projected vector.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>array-like vector with k entries</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="random.html" class="btn btn-neutral float-right" title="Random" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="MIQP.html" class="btn btn-neutral float-left" title="Mixed Quadratic Programming" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Sebastian Buschjäger.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
