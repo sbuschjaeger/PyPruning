@@ -1,4 +1,4 @@
-# PyPruning
+![PyPruning](docs/pruning-logo.png "PyPruning")
 
 [![Building docs](https://github.com/sbuschjaeger/PyPruning/actions/workflows/docs.yml/badge.svg)](https://github.com/sbuschjaeger/PyPruning/actions/workflows/docs.yml)
 [![tests](https://github.com/sbuschjaeger/PyPruning/actions/workflows/tests.yml/badge.svg)](https://github.com/sbuschjaeger/PyPruning/actions/workflows/tests.yml)
@@ -85,7 +85,7 @@ print("MIQPPruningClassifier with {} estimators and {} metric is {} %".format(n_
 
 # Reproducing results from literature
 
-There is a decent amount of pruning methods available in literature which mostly differs by the scoring functions used to score the performance of sub-ensembles. All pruning methods accept different forms of metrics and/or algorithm to determine the specific behavior. Please have a look at the specific class files to see which metrics are already implemented. If you cannot find you metric of choice feel free to implement it. Currently supported are
+There is a decent amount of pruning methods available in literature which mostly differ by the scoring function as well as the optimizer used to score the performance of sub-ensembles. All pruning methods accept different forms of metrics and/or algorithm to determine the specific behavior. Please have a look at the documentation to see which metrics are already implemented and how to add your own. Currently supported are
 
 - `individual_margin_diversity` (Guo, H., Liu, H., Li, R., Wu, C., Guo, Y., & Xu, M. (2018). Margin & diversity based ordering ensemble pruning. Neurocomputing, 275, 237–246. https://doi.org/10.1016/j.neucom.2017.06.052)
 - `individual_contribution` (Lu, Z., Wu, X., Zhu, X., & Bongard, J. (2010). Ensemble pruning via individual contribution ordering. Proceedings of the ACM SIGKDD International Conference on Knowledge Discovery and Data Mining, 871–880. https://doi.org/10.1145/1835804.1835914)
@@ -99,6 +99,10 @@ There is a decent amount of pruning methods available in literature which mostly
 - `combined` (Cavalcanti, G. D. C., Oliveira, L. S., Moura, T. J. M., & Carvalho, G. V. (2016). Combining diversity measures for ensemble pruning. Pattern Recognition Letters, 74, 38–45. https://doi.org/10.1016/j.patrec.2016.01.029)
 - `combined_error` (Zhang, Y., Burer, S., & Street, W. N. (2006). Ensemble Pruning Via Semi-definite Programming. Journal of Machine Learning Research, 7, 1315–1338. https://doi.org/10.1016/j.jasms.2006.06.007)
 - `reference_vector` (Hernández-Lobato, D., Martínez-Muñoz, G., & Suárez, A. (2006). Pruning in Ordered Bagging Ensembles. International Conference on Machine Learning, 1266–1273. https://doi.org/10.1109/ijcnn.2006.246837)
+- `largest_mean_distance` (Giacinto, G., Roli, F., & Fumera, G. (n.d.). Design of effective multiple classifier systems by clustering of classifiers. Proceedings 15th International Conference on Pattern Recognition. ICPR-2000. doi:10.1109/icpr.2000.906039)
+- `cluster_accuracy` (Lazarevic, A., & Obradovic, Z. (2001). Effective pruning of neural network classifier ensembles. Proceedings of the International Joint Conference on Neural Networks, 2(January), 796–801. https://doi.org/10.1109/ijcnn.2001.939461)
+- `cluster_centroids` (Bakker, Bart, and Tom Heskes. "Clustering ensembles of neural network models." Neural networks 16.2 (2003): 261-269.)
+
 
 # Acknowledgements 
 

@@ -63,7 +63,7 @@ for sm in [individual_error]:
             print("Test passed for ", method)
 
 for ce in [kmeans, agglomerative]:
-    for se in [random_selector, centroid_selector, accuracy, largest_mean_distance]:
+    for se in [random_selector, centroid_selector, cluster_accuracy, largest_mean_distance]:
         pruned_model = ClusterPruningClassifier(cluster_estimators=ce, select_estimators=se, n_estimators=n_prune)
         if not test_model(pruned_model, Xprune, yprune, Xtest, ytest, model.estimators_,target_accuracy):
             sys.exit(1)
