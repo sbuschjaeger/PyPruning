@@ -180,7 +180,7 @@
 <span id="mixed-quadratic-programming"></span><h1>Mixed Quadratic Programming<a class="headerlink" href="#module-PyPruning.MIQPPruningClassifier" title="Permalink to this headline">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="PyPruning.MIQPPruningClassifier.MIQPPruningClassifier">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">PyPruning.MIQPPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">MIQPPruningClassifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">n_estimators=5</span></em>, <em class="sig-param"><span class="pre">single_metric=None</span></em>, <em class="sig-param"><span class="pre">pairwise_metric=&lt;function</span> <span class="pre">combined_error&gt;</span></em>, <em class="sig-param"><span class="pre">alpha=1</span></em>, <em class="sig-param"><span class="pre">eps=0.01</span></em>, <em class="sig-param"><span class="pre">verbose=False</span></em>, <em class="sig-param"><span class="pre">n_jobs=8</span></em>, <em class="sig-param"><span class="pre">single_metric_options=None</span></em>, <em class="sig-param"><span class="pre">pairwise_metric_options=None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.MIQPPruningClassifier.MIQPPruningClassifier" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">PyPruning.MIQPPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">MIQPPruningClassifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">n_estimators=5</span></em>, <em class="sig-param"><span class="pre">single_metric=None</span></em>, <em class="sig-param"><span class="pre">pairwise_metric=&lt;function</span> <span class="pre">combined_error&gt;</span></em>, <em class="sig-param"><span class="pre">alpha=1</span></em>, <em class="sig-param"><span class="pre">verbose=False</span></em>, <em class="sig-param"><span class="pre">n_jobs=8</span></em>, <em class="sig-param"><span class="pre">single_metric_options=None</span></em>, <em class="sig-param"><span class="pre">pairwise_metric_options=None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.MIQPPruningClassifier.MIQPPruningClassifier" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="extending.html#PyPruning.PruningClassifier.PruningClassifier" title="PyPruning.PruningClassifier.PruningClassifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyPruning.PruningClassifier.PruningClassifier</span></code></a></p>
 <p>Mixed Integer Quadratic Programming (MIQP) Pruning.</p>
 <p>This pruning method constructs a MIQP so that its solution is the pruned ensemble. Formally, it uses the problem</p>
@@ -246,17 +246,6 @@
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
 <dd class="field-odd"><p>float, must be in [0,1]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="PyPruning.MIQPPruningClassifier.MIQPPruningClassifier.eps">
-<span class="sig-name descname"><span class="pre">eps</span></span><a class="headerlink" href="#PyPruning.MIQPPruningClassifier.MIQPPruningClassifier.eps" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sometimes and especially for larger P matrices there can be numerical inaccuries. In this case, the resulting problem might become non-convex so that the MQIP solver cannot solve the problem anymore. For a better numerical stability the eps value can be added to the diagonal of the P matrix.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float, default 1e-2</p>
 </dd>
 </dl>
 </dd></dl>
