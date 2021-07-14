@@ -5,31 +5,32 @@
 
 This package provides implementations for some common ensemble pruning algorithms. Pruning algorithms aim to select the best subset of an trained ensemble to minimize memory consumption and maximize accuracy. Currently, six types of pruning algorithms are implemented:
 
-- :class:`RandomPruningClassifier`: Selects a random subset of classifiers. This is mainly used as a baseline.
-- :class:`RankPruningClassifier`: Rank each classifier according to a given metric and then select the best K classifier.
-- :class:`ClusterPruningClassifier`: Cluster the classifiers according to a clustering method and then select a representative from each cluster to from the sub-ensemble.
-- :class:`GreedyPruningClassifier`: Proceeds in rounds and selects the best classifier in each round given the already selected sub-ensemble. 
-- :class:`MIQPPruningClassifier`: Constructs a mixed-integer quadratic problem and optimizes this to compute the best sub ensemble. 
-- :class:`ProxPruningClassifier`: Minimize a (regularized) loss function via (stochastic) proximal gradient descent over the ensembles weights. 
+- `RandomPruningClassifier`: Selects a random subset of classifiers. This is mainly used as a baseline.
+- `RankPruningClassifier`: Rank each classifier according to a given metric and then select the best K classifier.
+- `ClusterPruningClassifier`: Cluster the classifiers according to a clustering method and then select a representative from each cluster to from the sub-ensemble.
+- `GreedyPruningClassifier`: Proceeds in rounds and selects the best classifier in each round given the already selected sub-ensemble. 
+- `MIQPPruningClassifier`: Constructs a mixed-integer quadratic problem and optimizes this to compute the best sub ensemble. 
+- `ProxPruningClassifier`: Minimize a (regularized) loss function via (stochastic) proximal gradient descent over the ensembles weights. 
 
-For more details please have a look at the [documentation](https://sbuschjaeger.github.io/PyPruning/html/root.html). 
+For more details please have a look at the [documentation](https://sbuschjaeger.github.io/PyPruning/html/index.html). 
 
 # How to install
 
 You can install this package via directly via pip from git 
 
-   pip install git+https://github.com/sbuschjaeger/PyPruning.git
+    pip install git+https://github.com/sbuschjaeger/PyPruning.git
 
 
 If you have trouble with dependencies you can try setting up a conda environment which I use for development:
 
+```bash
    git clone git@github.com:sbuschjaeger/PyPruning.git
    cd PyPruning
    conda env create -f environment.yml
    conda activate pypruning
+```
 
 ### Some notes on the MIQPPruningClassifier
-
 
 For implementing the `MIQPPruningClassifier` we use [cvxpy](https://www.cvxpy.org/) which does **not** come with a MIQP solver. If you want to use this algorithm you have to manually install a solver, e.g.
 
@@ -43,7 +44,7 @@ For more information on setting the solver for `MIQPPruningClassifier` have a lo
 
 # Pruning an ensemble
 
-A complete example might look like this. For more details please have a look at the [documentation]() or at the files under `run/tests.py`:
+A complete example might look like this. For more details please have a look at the [documentation](https://sbuschjaeger.github.io/PyPruning/html/index.html) or at the files under `run/tests.py`:
 
 ```Python
 
@@ -103,4 +104,4 @@ There is a decent amount of pruning methods available in literature which mostly
 
 The software is written and maintained by [Sebastian Buschjäger](https://sbuschjaeger.github.io/) as part of his work at the [Chair for Artificial Intelligence](https://www-ai.cs.tu-dortmund.de) at the TU Dortmund University and the [Collaborative Research Center 876](https://sfb876.tu-dortmund.de). If you have any question feel free to contact me under sebastian.buschjaeger@tu-dortmund.de 
 
-Special thanks goes to [Henri Petuker](mailto:henri.petuker@tu-dortmund.de) who provided parts of this implementation during his bachelor thesis.
+Special thanks goes to [Henri Petuker](mailto:henri.petuker@tu-dortmund.de) who provided parts of this implementation during his bachelor thesis and and [David Clemens](mailto:david.clemens@tu-dortmund.de) who made the logo. 

@@ -201,15 +201,13 @@ class MIQPPruningClassifier(PruningClassifier):
         A function that assigns a value to each pair of classifiers which forms the P matrix
     alpha : float, must be in [0,1]
         The trade-off between the single and pairwise metric. alpha = 0 only considers the single_metric, whereas alpha = 1 only considers the pairwise metric 
-    eps : float, default 1e-2
-        Sometimes and especially for larger P matrices there can be numerical inaccuries. In this case, the resulting problem might become non-convex so that the MQIP solver cannot solve the problem anymore. For a better numerical stability the eps value can be added to the diagonal of the P matrix. 
     verbose : boolean, default is False
         If true, more information from the MQIP solver is printed. 
     n_jobs : int, default is 8
         The number of threads used for computing the metrics. This does not have any effect on the number of threads used by the MQIP solver.
     """
 
-    def __init__(self, n_estimators = 5, single_metric = None, pairwise_metric = combined_error, alpha = 1, eps = 1e-2, verbose = False, n_jobs = 8, single_metric_options = None, pairwise_metric_options = None):
+    def __init__(self, n_estimators = 5, single_metric = None, pairwise_metric = combined_error, alpha = 1, verbose = False, n_jobs = 8, single_metric_options = None, pairwise_metric_options = None):
         """ 
         Creates a new MIQPPruningClassifier.
 
@@ -236,7 +234,10 @@ class MIQPPruningClassifier(PruningClassifier):
         super().__init__()
         
         assert 0 <= alpha <= 1, "l_reg should be from [0,1], but you supplied {}".format(alpha)
-        assert eps >= 0, "Eps should be >= 0, but you supplied".format(eps)
+        
+        # eps : float, default 1e-2
+        # Sometimes and especially for larger P matrices there can be numerical inaccuries. In this case, the resulting problem might become non-convex so that the MQIP solver cannot solve the problem anymore. For a better numerical stability the eps value can be added to the diagonal of the P matrix. 
+        # assert eps >= 0, "eps should be >= 0, but you supplied".format(eps)
 
         assert pairwise_metric is not None or single_metric is not None, "You did not provide a single_metric or pairwise_metric. Please provide at-least one of them"
 
@@ -261,17 +262,21 @@ class MIQPPruningClassifier(PruningClassifier):
         else:
             self.pairwise_metric_options = pairwise_metric_options
         
+        self.single_metric = single_metric
+        self.pairwise_metric = pairwise_metric
         self.alpha = alpha
         self.verbose = verbose
-        self.eps = eps
+        # self.eps = eps
 
     # I assume that Parallel keeps the order of evaluations regardless of its backend (see eg. https://stackoverflow.com/questions/56659294/does-joblib-parallel-keep-the-original-order-of-data-passed)
     # But for safety measures we also return the index of the current model
     def _single_metric(self, i, proba, target, additional_options):
         return (i, self.single_metric(i, proba, target, **additional_options))
 
+    # I assume that Parallel keeps the order of evaluations regardless of its backend (see eg. https://stackoverflow.com/questions/56659294/does-joblib-parallel-keep-the-original-order-of-data-passed)
+    # But for safety measures we also return the index of the current model
     def _pairwise_metric(self, i, j, proba, target, additional_options):
-        return (i, self.pairwise_metric(i, proba, target, **additional_options))
+        return (i, j, self.pairwise_metric(i, j, proba, target, **additional_options))
 
     def prune_(self, proba, target, data = None):
         n_received = len(proba)
@@ -279,38 +284,45 @@ class MIQPPruningClassifier(PruningClassifier):
             return range(0, n_received), [1.0 / n_received for _ in range(n_received)]
 
         if self.alpha < 1:
+            # Compute metrics for q vector
             single_scores = Parallel(n_jobs=self.n_jobs, backend="threading")(
                 delayed(self._single_metric) (i, proba, target, self.single_metric_options) for i in range(n_received)
             )
-            # TODO MAKE SURE SORTING IS CORRECT
-            # best_model, _ = min(scores, key = lambda e: e[1])
-            q = np.array(single_scores)
+
+            # Extract q vector in the correct order
+            single_scores = sorted(single_scores)
+            q = np.array([s for _, s in single_scores])
         else:
             q = np.zeros((n_received,1))
 
         if self.alpha > 0:
+            # Compute metrics for P matrix
             pairwise_scores = Parallel(n_jobs=self.n_jobs, backend="threading")(
                 delayed(self._pairwise_metric) (i, j, proba, target, self.pairwise_metric_options) for i in range(n_received) for j in range(i, n_received)
             )
-            # TODO MAKE SURE SORTING IS CORRECT
-            # best_model, _ = min(scores, key = lambda e: e[1])
-
+            # Extract values for P matrix in correct order
             # TODO This is probably easier and quicker with some fancy numpy operations
+            pairwise_scores = sorted(pairwise_scores, key=lambda x: (x[0],x[1]))
             P = np.zeros((n_received,n_received))
             s = 0
             for i in range(n_received):
                 for j in range(i, n_received):
                     if i == j:
-                        P[i,j] = pairwise_scores[s]
+                        P[i,j] = pairwise_scores[s][2]
                     else:
-                        P[i,j] = pairwise_scores[s]
-                        P[j,i] = pairwise_scores[s]
+                        P[i,j] = pairwise_scores[s][2]
+                        P[j,i] = pairwise_scores[s][2]
                     s += 1
-            P += self.eps * np.eye(n_received)
+            #P += self.eps * np.eye(n_received)
 
+            # Make sure that the problem is convex and numerical well-behaved to be solveable
+            k = max(P.sum(axis=1)) + 1
+            for i in range(len(P)):
+                P[i][i] = k 
         else:
             P = np.zeros((n_received,n_received))
 
+        # Build the actual MIQ problem
         w = cp.Variable(n_received, boolean=True)
         
         if self.alpha == 1:
@@ -324,6 +336,8 @@ class MIQPPruningClassifier(PruningClassifier):
             atoms.affine.sum.sum(w) == self.n_estimators,
         ]) 
         prob.solve(verbose=self.verbose)
+
+        # Extract the solution
         selected = [i for i in range(n_received) if w.value[i]]
         weights = [1.0/len(selected) for _ in selected]
 

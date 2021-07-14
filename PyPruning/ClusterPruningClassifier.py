@@ -28,14 +28,20 @@ def agglomerative(X, n_estimators, **kwargs):
     """
     Perform agglomerative clustering on the given data `X`. The original publication (see below) considers the accuracy / error of each estimator which can be achieved by setting `cluster_mode = "accuracy"` in the ClusterPruningClassifier. 
 
-
     Reference:
+        Giacinto, G., Roli, F., & Fumera, G. (n.d.). Design of effective multiple classifier systems by clustering of classifiers. Proceedings 15th International Conference on Pattern Recognition. ICPR-2000. doi:10.1109/icpr.2000.906039 
     """
     agg = AgglomerativeClustering(n_clusters = n_estimators, distance_threshold = None, **kwargs)
     assignments = agg.fit_predict(X)
     return assignments
 
 def centroid_selector(X, assignments, target):
+    """
+    Returns the centroid of each cluster. Bakker and Heske propose this approach, although there are subtle differences. Originally they propose to use annealing via an EM algorithm, whereas we use kmeans / agglomerative clustering. 
+
+    Reference
+        Bakker, Bart, and Tom Heskes. "Clustering ensembles of neural network models." Neural networks 16.2 (2003): 261-269.
+    """
     # TODO centroids are already known if kmeans was used, but agglomerative does not know / care about centroids
     clf = NearestCentroid()
     clf.fit(X, assignments)
@@ -45,7 +51,13 @@ def centroid_selector(X, assignments, target):
 
     return centroid_idx
 
-def accuracy(X, assignments, target):
+def cluster_accuracy(X, assignments, target, n_classes = None):
+    """
+    Select the most accurate model from each cluster. Lazarevic and Obradovic propose this approach although there are subtle differences. In the original paper they remove the least-accurate classifier as long as the performance of the sub-ensemble does not decrease. In this implementation we simply select the best / most accurate classifier from each cluster.
+
+    Reference
+        Lazarevic, A., & Obradovic, Z. (2001). Effective pruning of neural network classifier ensembles. Proceedings of the International Joint Conference on Neural Networks, 2(January), 796–801. https://doi.org/10.1109/ijcnn.2001.939461
+    """
     idx_per_centroid = {}
     for i, a in enumerate(assignments):
         if a not in idx_per_centroid:
@@ -53,18 +65,23 @@ def accuracy(X, assignments, target):
         idx_per_centroid[a].append(i)
     
     selected_idx = []
+
+    if n_classes is None:
+        n_classes = len(set(target))
     
+    preds = X.reshape(X.shape[0], int(X.shape[1]/n_classes), n_classes)
     for c, idx in idx_per_centroid.items():
-        accs = [ (X[i,:].argmax(axis=1) == target).mean() for i in idx ]
+        accs = [ (preds[i,:].argmax(axis=1) == target).mean() for i in idx ]
         selected_idx.append(np.argmax(accs))
 
     return selected_idx
 
 def largest_mean_distance(X, assignments, target, metric = 'euclidean', n_jobs = None):
     """
-    Compute the largest 
+    Select the most distant classifier to all other clusters. 
 
-    
+    Reference:
+        Giacinto, G., Roli, F., & Fumera, G. (n.d.). Design of effective multiple classifier systems by clustering of classifiers. Proceedings 15th International Conference on Pattern Recognition. ICPR-2000. doi:10.1109/icpr.2000.906039 
     """
     idx_per_centroid = {}
     for i, a in enumerate(assignments):
@@ -88,6 +105,9 @@ def largest_mean_distance(X, assignments, target, metric = 'euclidean', n_jobs =
     return selected_indxed
 
 def random_selector(X, assignments, target):
+    """
+    Randomly select a classifier from each cluster.
+    """
     idx_per_centroid = {}
     for i, a in enumerate(assignments):
         if a not in idx_per_centroid:
@@ -108,6 +128,7 @@ class ClusterPruningClassifier(PruningClassifier):
     In this implementation, you must provide two functions
 
     - `cluster_estimators`: A function which clusters the estimators given their representation X (see `cluster_mode` for details) and return the cluster assignment for each estimator. An example of kmeans clustering would be:
+
     .. code-block:: python
 
         def kmeans(X, n_estimators, **kwargs):
@@ -116,6 +137,7 @@ class ClusterPruningClassifier(PruningClassifier):
             return assignments 
     
     - `select_estimators`: A function which selects the estimators from the clustering and returns the selected indices. An example of which selects the centroids would be:
+    
     .. code-block:: python
 
         def centroid_selector(x, assignments, target, **kwargs):
@@ -142,7 +164,7 @@ class ClusterPruningClassifier(PruningClassifier):
         The representation of each estimator used for clustering. Must be one of {"probabilities", "predictions", "accuracy"}:
             - "probabilities": Uses the raw probability output of each estimator for clustering. For multi-class problems the vector is "flattened" to a N * C vector where N is the number pf data points in the pruning set and C is the number of classes  
             - "predictions": Same as "probabilities", but uses the predictions instead of the probabilities.
-            - "accuracy": Computes the accuracy of each estimator on each datapoint and clusters uses the corresponding vector for clustering. 
+            - "accuracy": Computes the accuracy of each estimator on each datapoint and uses the corresponding vector for clustering. 
     cluster_options : dict, default is None
         Additional options passed to `cluster_estimators`
     selector_options : dict, default is None
@@ -179,16 +201,19 @@ class ClusterPruningClassifier(PruningClassifier):
             d2 = np.arange(proba.shape[1])
             idx = proba.argmax(axis=2)
             tmp[d1,d2,idx] = 1
-            proba = tmp
-            proba = proba.reshape(proba.shape[0],proba.shape[1]*proba.shape[2])
+            fc_proba = tmp
+            fc_proba = fc_proba.reshape(fc_proba.shape[0],fc_proba.shape[1]*fc_proba.shape[2])
         elif self.cluster_mode == "accuracy":
             preds = proba.argmax(axis=2)
-            proba = (preds == target).astype(int)
+            fc_proba = (preds == target).astype(int)
         else:
-            proba = proba.reshape(proba.shape[0],proba.shape[1]*proba.shape[2])
+            fc_proba = proba.reshape(proba.shape[0],proba.shape[1]*proba.shape[2])
 
-        assignments = self.cluster_estimators(proba, self.n_estimators, **self.cluster_options)
+        assignments = self.cluster_estimators(fc_proba, self.n_estimators, **self.cluster_options)
         
-        selected_models = self.select_estimators(proba, assignments, target, **self.selector_options)
+        if self.select_estimators == cluster_accuracy and "n_classes" not in self.selector_options:
+            self.selector_options["n_classes"] = proba.shape[2]
+
+        selected_models = self.select_estimators(fc_proba, assignments, target, **self.selector_options)
 
         return selected_models, [1.0 / len(selected_models) for _ in selected_models]

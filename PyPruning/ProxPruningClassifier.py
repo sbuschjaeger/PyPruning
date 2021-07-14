@@ -76,6 +76,103 @@ def to_prob_simplex(x):
     projected_x = [max(xi + l, 0.0) for xi in x]
     return projected_x
 
+def node_regularizer(est):
+    """ Extract the number of nodes in the given tree 
+
+    Parameters
+    ----------
+    X : numpy matrix
+        A (N, d) matrix with the datapoints used for pruning where N is the number of data points and d is the dimensionality
+    
+    Y : numpy array / list of ints
+        A numpy array or list of N integers where each integer represents the class for each example. Classes should start with 0, so that for C classes the integer 0,1,...,C-1 are used
+
+    est: object
+        Estimator for which the regularizer is computed.
+
+    Returns
+    -------
+    u : float / int scalar
+        The computed regularizer
+    """
+    return est.tree_.node_count
+
+def avg_path_len_regularizer(est):
+    """ Extract the number of nodes in the given tree 
+
+    Parameters
+    ----------
+    X : numpy matrix
+        A (N, d) matrix with the datapoints used for pruning where N is the number of data points and d is the dimensionality
+    
+    Y : numpy array / list of ints
+        A numpy array or list of N integers where each integer represents the class for each example. Classes should start with 0, so that for C classes the integer 0,1,...,C-1 are used
+
+    est: object
+        Estimator for which the regularizer is computed.
+
+    Notes
+    -----
+    Thanks to Mojtaba Masoudinejad (mojtaba.masoudinejad@tu-dortmund.de) for the implementation
+
+    Returns
+    -------
+    u : float / int scalar
+        The computed regularizer
+    """
+    # %% Identify all child-parent relations
+    # ----- read data from the tree
+    n_nodes = est.tree_.node_count
+    children_left = est.tree_.children_left
+    children_right = est.tree_.children_right
+    samples = est.tree_.n_node_samples
+    weighted_n_node_samples = est.tree_.weighted_n_node_samples
+    impurity = est.tree_.impurity
+    total_sum_weights = weighted_n_node_samples[0]
+
+    # ----- Initial empty variables
+    is_leaves = np.zeros(shape = n_nodes, dtype = bool)
+    node_parent = np.zeros(shape = n_nodes, dtype = np.int64) # Parent node ID
+    r_node = np.zeros(shape = n_nodes, dtype = np.float64)
+
+    # ----- Initialize the stack
+    stack = [(0, -1)]  # [node id, parent id] root node has no parent => -1
+
+    # ----- Go downward to identify child/parent and leaf status
+    while len(stack) > 0:    
+        # check each node only once, using pop
+        node_id, parent  = stack.pop()
+        node_parent[node_id] = parent
+        
+        # childrens of a node are different
+        is_split_node = children_left[node_id] != children_right[node_id]
+        
+        # add data of split point to the stack to go through
+        if is_split_node:
+            child_l_id = children_left[node_id]
+            child_r_id = children_right[node_id]
+            stack.append((child_l_id, node_id))
+            stack.append((child_r_id, node_id))
+        else:
+            is_leaves[node_id] = True
+
+    # %% Identify all branches and probabilistic cost of each split node(branch)
+    node_cost = np.zeros(shape = n_nodes, dtype = np.float64)
+
+    for node_ind in range (n_nodes): # for all nodes
+        r_node[node_ind] = impurity[node_ind]
+        # r_node[node_ind] = (weighted_n_node_samples[node_ind] * impurity[node_ind] / total_sum_weights)
+            
+        if is_leaves[node_ind]:
+            current_parent = node_parent[node_ind]
+            upward_length = 1
+            while current_parent != -1:
+                node_cost[current_parent] = node_cost[current_parent] + upward_length * samples[node_ind]/samples[current_parent]
+                current_parent = node_parent[current_parent] # get the next parent node id
+                upward_length = upward_length + 1
+
+    return node_cost[0]
+
 class ProxPruningClassifier(PruningClassifier):
     """ (Heterogeneous) Pruning via Proximal Gradient Descent
     
@@ -114,12 +211,8 @@ class ProxPruningClassifier(PruningClassifier):
 
     l_ensemble_reg : float, default is 0
         The ``ensemble_regularizer`` regularization strength :math:`\\lambda_2`. If ``"L0"`` or ``"L1"`` is selected, then ``l_ensemble_reg`` is the regularization strength which scales the regularizer. If ``"hard-L0"`` is selected, then ``l_ensemble_reg`` is the maximum number of members in pruned ensemble.
-    tree_regularizer : str or ``None``, default is ``"node"``
-        The tree_regularizer :math:`R_1`. This regularizer is used to select smaller trees. Should be one of ``{None,"node"}``
-
-        - ``None``: No constraints are applied during ensemble selection.
-        - ``"node"``: Apply :math:`R_1(h_i) = n_i` regularization where :math:`n_i` is the number of nodes in the tree.
-
+    tree_regularizer : function or ``None``, default is ``node_regularizer``
+        The tree_regularizer :math:`R_1`. This regularizer is used to select smaller trees. This should be `None` or a function which returns the regularizer given a single tree. 
     l_tree_reg : float, default is 0
         The ``tree_regularizer`` regularization strength :math:`\\lambda_1`. The ``tree_regularizer`` is scaled by this value. 
     batch_size: int, default is 256
@@ -139,7 +232,7 @@ class ProxPruningClassifier(PruningClassifier):
         step_size = 1e-1,
         ensemble_regularizer = "hard-L0",
         l_ensemble_reg = 0,  
-        tree_regularizer = "node",
+        tree_regularizer = node_regularizer,
         l_tree_reg = 0,
         normalize_weights = True,
         batch_size = 256,
@@ -152,7 +245,6 @@ class ProxPruningClassifier(PruningClassifier):
         assert loss in ["mse","cross-entropy","hinge2"], "Currently only {{mse, cross-entropy, hinge2}} loss is supported"
         assert ensemble_regularizer is None or ensemble_regularizer in ["none","L0", "L1", "hard-L0"], "Currently only {{none,L0, L1, hard-L0}} the ensemble regularizer is supported"
         assert l_tree_reg >= 0, "l_reg must be greater or equal to 0"
-        assert tree_regularizer is None or tree_regularizer in ["node"], "Currently only {{none, node}} regularizer is supported for tree the regularizer."
         assert batch_size >= 1, "batch_size must be at-least 1"
         assert epochs >= 1, "epochs must be at-least 1"
 
@@ -220,15 +312,16 @@ class ProxPruningClassifier(PruningClassifier):
         directions = np.mean(proba*loss_deriv,axis=(1,2))
 
         # Compute the appropriate regularizer
-        if self.tree_regularizer == "node" and self.l_tree_reg > 0:
-            loss += self.l_tree_reg * np.sum( [ (w * est.tree_.node_count) for w, est in zip(self.weights_, self.estimators_)] )
-            
-            node_deriv = self.l_tree_reg * np.array([ est.tree_.node_count for est in self.estimators_])
+        if self.tree_regularizer is not None and self.l_tree_reg > 0:
+            tree_regs = np.array([ self.tree_regularizer(est) for est in self.estimators_])
+
+            loss += self.l_tree_reg * np.sum( [ (w * tr) for w, tr in zip(self.weights_, tree_regs)] )
+            tree_reg_deriv = self.l_tree_reg * tree_regs
         else:
-            node_deriv = 0
+            tree_reg_deriv = 0
 
         # Perform the gradient step + projection 
-        tmp_w = self.weights_ - self.step_size*directions - self.step_size*node_deriv
+        tmp_w = self.weights_ - self.step_size*directions - self.step_size*tree_reg_deriv
         
         if self.update_leaves:
             # compute direction per tree
