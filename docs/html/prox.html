@@ -180,7 +180,7 @@
 <span id="proximal-gradient-descent"></span><h1>Proximal Gradient Descent<a class="headerlink" href="#module-PyPruning.ProxPruningClassifier" title="Permalink to this headline">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="PyPruning.ProxPruningClassifier.ProxPruningClassifier">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">PyPruning.ProxPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">ProxPruningClassifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cross-entropy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensemble_regularizer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hard-L0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_ensemble_reg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tree_regularizer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'node'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_tree_reg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize_weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epochs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">update_leaves</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_every_epochs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.ProxPruningClassifier.ProxPruningClassifier" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">PyPruning.ProxPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">ProxPruningClassifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">loss='cross-entropy'</span></em>, <em class="sig-param"><span class="pre">step_size=0.1</span></em>, <em class="sig-param"><span class="pre">ensemble_regularizer='hard-L0'</span></em>, <em class="sig-param"><span class="pre">l_ensemble_reg=0</span></em>, <em class="sig-param"><span class="pre">tree_regularizer=&lt;function</span> <span class="pre">node_regularizer&gt;</span></em>, <em class="sig-param"><span class="pre">l_tree_reg=0</span></em>, <em class="sig-param"><span class="pre">normalize_weights=True</span></em>, <em class="sig-param"><span class="pre">batch_size=256</span></em>, <em class="sig-param"><span class="pre">epochs=1</span></em>, <em class="sig-param"><span class="pre">verbose=False</span></em>, <em class="sig-param"><span class="pre">update_leaves=False</span></em>, <em class="sig-param"><span class="pre">out_path=None</span></em>, <em class="sig-param"><span class="pre">eval_every_epochs=None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.ProxPruningClassifier.ProxPruningClassifier" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="extending.html#PyPruning.PruningClassifier.PruningClassifier" title="PyPruning.PruningClassifier.PruningClassifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyPruning.PruningClassifier.PruningClassifier</span></code></a></p>
 <p>(Heterogeneous) Pruning via Proximal Gradient Descent</p>
 <p>This pruning method directly minimizes a constrained loss function <span class="math notranslate nohighlight">\(L\)</span> including a regularizer <span class="math notranslate nohighlight">\(R_1\)</span> via (stochastic) proximal gradient descent. There are two sets of constraints available. When soft constraints are used, then the following function is minimized</p>
@@ -212,11 +212,7 @@
 </dd>
 <dt>l_ensemble_reg<span class="classifier">float, default is 0</span></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">ensemble_regularizer</span></code> regularization strength <span class="math notranslate nohighlight">\(\lambda_2\)</span>. If <code class="docutils literal notranslate"><span class="pre">&quot;L0&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;L1&quot;</span></code> is selected, then <code class="docutils literal notranslate"><span class="pre">l_ensemble_reg</span></code> is the regularization strength which scales the regularizer. If <code class="docutils literal notranslate"><span class="pre">&quot;hard-L0&quot;</span></code> is selected, then <code class="docutils literal notranslate"><span class="pre">l_ensemble_reg</span></code> is the maximum number of members in pruned ensemble.</p>
 </dd>
-<dt>tree_regularizer<span class="classifier">str or <code class="docutils literal notranslate"><span class="pre">None</span></code>, default is <code class="docutils literal notranslate"><span class="pre">&quot;node&quot;</span></code></span></dt><dd><p>The tree_regularizer <span class="math notranslate nohighlight">\(R_1\)</span>. This regularizer is used to select smaller trees. Should be one of <code class="docutils literal notranslate"><span class="pre">{None,&quot;node&quot;}</span></code></p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">None</span></code>: No constraints are applied during ensemble selection.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&quot;node&quot;</span></code>: Apply <span class="math notranslate nohighlight">\(R_1(h_i) = n_i\)</span> regularization where <span class="math notranslate nohighlight">\(n_i\)</span> is the number of nodes in the tree.</p></li>
-</ul>
+<dt>tree_regularizer<span class="classifier">function or <code class="docutils literal notranslate"><span class="pre">None</span></code>, default is <code class="docutils literal notranslate"><span class="pre">node_regularizer</span></code></span></dt><dd><p>The tree_regularizer <span class="math notranslate nohighlight">\(R_1\)</span>. This regularizer is used to select smaller trees. This should be <cite>None</cite> or a function which returns the regularizer given a single tree.</p>
 </dd>
 <dt>l_tree_reg<span class="classifier">float, default is 0</span></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">tree_regularizer</span></code> regularization strength <span class="math notranslate nohighlight">\(\lambda_1\)</span>. The <code class="docutils literal notranslate"><span class="pre">tree_regularizer</span></code> is scaled by this value.</p>
 </dd>
@@ -274,6 +270,31 @@
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="PyPruning.ProxPruningClassifier.avg_path_len_regularizer">
+<span class="sig-prename descclassname"><span class="pre">PyPruning.ProxPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">avg_path_len_regularizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">est</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.ProxPruningClassifier.avg_path_len_regularizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract the number of nodes in the given tree</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>numpy matrix</em>) – A (N, d) matrix with the datapoints used for pruning where N is the number of data points and d is the dimensionality</p></li>
+<li><p><strong>Y</strong> (<em>numpy array / list of ints</em>) – A numpy array or list of N integers where each integer represents the class for each example. Classes should start with 0, so that for C classes the integer 0,1,…,C-1 are used</p></li>
+<li><p><strong>est</strong> (<em>object</em>) – Estimator for which the regularizer is computed.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Thanks to Mojtaba Masoudinejad (<a class="reference external" href="mailto:mojtaba&#46;masoudinejad&#37;&#52;&#48;tu-dortmund&#46;de">mojtaba<span>&#46;</span>masoudinejad<span>&#64;</span>tu-dortmund<span>&#46;</span>de</a>) for the implementation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>u</strong> – The computed regularizer</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float / int scalar</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="PyPruning.ProxPruningClassifier.create_mini_batches">
 <span class="sig-prename descclassname"><span class="pre">PyPruning.ProxPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">create_mini_batches</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shuffle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.ProxPruningClassifier.create_mini_batches" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create an mini-batch like iterator for the given inputs / target / data. Shamelessly copied from <a class="reference external" href="https://stackoverflow.com/questions/38157972/how-to-implement-mini-batch-gradient-descent-in-python">https://stackoverflow.com/questions/38157972/how-to-implement-mini-batch-gradient-descent-in-python</a></p>
@@ -286,6 +307,27 @@
 <li><p><strong>batch_size</strong> (<em>int</em>) – The mini batch size</p></li>
 <li><p><strong>shuffle</strong> (<em>bool</em><em>, </em><em>default False</em>) – If True shuffle the batches</p></li>
 </ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PyPruning.ProxPruningClassifier.node_regularizer">
+<span class="sig-prename descclassname"><span class="pre">PyPruning.ProxPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">node_regularizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">est</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.ProxPruningClassifier.node_regularizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract the number of nodes in the given tree</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>numpy matrix</em>) – A (N, d) matrix with the datapoints used for pruning where N is the number of data points and d is the dimensionality</p></li>
+<li><p><strong>Y</strong> (<em>numpy array / list of ints</em>) – A numpy array or list of N integers where each integer represents the class for each example. Classes should start with 0, so that for C classes the integer 0,1,…,C-1 are used</p></li>
+<li><p><strong>est</strong> (<em>object</em>) – Estimator for which the regularizer is computed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>u</strong> – The computed regularizer</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float / int scalar</p>
 </dd>
 </dl>
 </dd></dl>

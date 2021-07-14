@@ -248,7 +248,7 @@
 <dt>The representation of each estimator used for clustering. Must be one of {“probabilities”, “predictions”, “accuracy”}:</dt><dd><ul class="simple">
 <li><p>“probabilities”: Uses the raw probability output of each estimator for clustering. For multi-class problems the vector is “flattened” to a N * C vector where N is the number pf data points in the pruning set and C is the number of classes</p></li>
 <li><p>“predictions”: Same as “probabilities”, but uses the predictions instead of the probabilities.</p></li>
-<li><p>“accuracy”: Computes the accuracy of each estimator on each datapoint and clusters uses the corresponding vector for clustering.</p></li>
+<li><p>“accuracy”: Computes the accuracy of each estimator on each datapoint and uses the corresponding vector for clustering.</p></li>
 </ul>
 </dd>
 </dl>
@@ -307,21 +307,34 @@
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="PyPruning.ClusterPruningClassifier.accuracy">
-<span class="sig-prename descclassname"><span class="pre">PyPruning.ClusterPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">accuracy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assignments</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.ClusterPruningClassifier.accuracy" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="PyPruning.ClusterPruningClassifier.agglomerative">
 <span class="sig-prename descclassname"><span class="pre">PyPruning.ClusterPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">agglomerative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_estimators</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.ClusterPruningClassifier.agglomerative" title="Permalink to this definition">¶</a></dt>
 <dd><p>Perform agglomerative clustering on the given data <cite>X</cite>. The original publication (see below) considers the accuracy / error of each estimator which can be achieved by setting <cite>cluster_mode = “accuracy”</cite> in the ClusterPruningClassifier.</p>
-<p>Reference:</p>
+<dl class="simple">
+<dt>Reference:</dt><dd><p>Giacinto, G., Roli, F., &amp; Fumera, G. (n.d.). Design of effective multiple classifier systems by clustering of classifiers. Proceedings 15th International Conference on Pattern Recognition. ICPR-2000. doi:10.1109/icpr.2000.906039</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="PyPruning.ClusterPruningClassifier.centroid_selector">
 <span class="sig-prename descclassname"><span class="pre">PyPruning.ClusterPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">centroid_selector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assignments</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.ClusterPruningClassifier.centroid_selector" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Returns the centroid of each cluster. Bakker and Heske propose this approach, although there are subtle differences. Originally they propose to use annealing via an EM algorithm, whereas we use kmeans / agglomerative clustering.</p>
+<dl class="simple">
+<dt>Reference</dt><dd><p>Bakker, Bart, and Tom Heskes. “Clustering ensembles of neural network models.” Neural networks 16.2 (2003): 261-269.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PyPruning.ClusterPruningClassifier.cluster_accuracy">
+<span class="sig-prename descclassname"><span class="pre">PyPruning.ClusterPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">cluster_accuracy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assignments</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.ClusterPruningClassifier.cluster_accuracy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Select the most accurate model from each cluster. Lazarevic and Obradovic propose this approach although there are subtle differences. In the original paper they remove the least-accurate classifier as long as the performance of the sub-ensemble does not decrease. In this implementation we simply select the best / most accurate classifier from each cluster.</p>
+<dl class="simple">
+<dt>Reference</dt><dd><p>Lazarevic, A., &amp; Obradovic, Z. (2001). Effective pruning of neural network classifier ensembles. Proceedings of the International Joint Conference on Neural Networks, 2(January), 796–801. <a class="reference external" href="https://doi.org/10.1109/ijcnn.2001.939461">https://doi.org/10.1109/ijcnn.2001.939461</a></p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="PyPruning.ClusterPruningClassifier.kmeans">
@@ -336,13 +349,18 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="PyPruning.ClusterPruningClassifier.largest_mean_distance">
 <span class="sig-prename descclassname"><span class="pre">PyPruning.ClusterPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">largest_mean_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assignments</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'euclidean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.ClusterPruningClassifier.largest_mean_distance" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute the largest</p>
+<dd><p>Select the most distant classifier to all other clusters.</p>
+<dl class="simple">
+<dt>Reference:</dt><dd><p>Giacinto, G., Roli, F., &amp; Fumera, G. (n.d.). Design of effective multiple classifier systems by clustering of classifiers. Proceedings 15th International Conference on Pattern Recognition. ICPR-2000. doi:10.1109/icpr.2000.906039</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="PyPruning.ClusterPruningClassifier.random_selector">
 <span class="sig-prename descclassname"><span class="pre">PyPruning.ClusterPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">random_selector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assignments</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.ClusterPruningClassifier.random_selector" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Randomly select a classifier from each cluster.</p>
+</dd></dl>
 
 </div>
 
