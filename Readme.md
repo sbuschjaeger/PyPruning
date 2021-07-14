@@ -1,4 +1,4 @@
-![PyPruning](docs/pruning-logo.png "PyPruning")
+<img src="docs/pruning-logo.png" width="200" height="200"> <h1>PyPruning</h1>
 
 [![Building docs](https://github.com/sbuschjaeger/PyPruning/actions/workflows/docs.yml/badge.svg)](https://github.com/sbuschjaeger/PyPruning/actions/workflows/docs.yml)
 [![tests](https://github.com/sbuschjaeger/PyPruning/actions/workflows/tests.yml/badge.svg)](https://github.com/sbuschjaeger/PyPruning/actions/workflows/tests.yml)
