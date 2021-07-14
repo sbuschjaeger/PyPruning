@@ -118,7 +118,7 @@ if not acc > target_accuracy:
     print("Test failed for {} with accuracy {}".format(method, acc*100.0))
     sys.exit(1)
 else:
-    print("Test passed for {} with accuracy {}".format(method, acc*100.0)
+    print("Test passed for {} with accuracy {}".format(method, acc*100.0))
 
 for s in ["individual_margin_diversity", "individual_contribution", "individual_error", "individual_kappa_statistic", "reduced_error", "complementariness", "drep", "margin_distance", "combined", "reference_vector", "combined_error", "error_ambiguity", "largest_mean_distance", "cluster_accuracy", "cluster_centroids"]:
     pruned_model = create_pruner(s, n_estimators = n_prune) 
