@@ -173,7 +173,7 @@ def avg_path_len_regularizer(est):
 
     return node_cost[0]
 
-class ProxPruningClassifier(PruningClassifier):
+class NCPruningClassifier(PruningClassifier):
     """ (Heterogeneous) Pruning via Proximal Gradient Descent
     
     This pruning method directly minimizes a constrained loss function :math:`L` including a regularizer :math:`R_1` via (stochastic) proximal gradient descent. There are two sets of constraints available. When soft constraints are used, then the following function is minimized
@@ -234,6 +234,7 @@ class ProxPruningClassifier(PruningClassifier):
         l_ensemble_reg = 0,  
         tree_regularizer = node_regularizer,
         l_tree_reg = 0,
+        ncl_reg = 0,
         normalize_weights = True,
         batch_size = 256,
         epochs = 1,
@@ -242,7 +243,7 @@ class ProxPruningClassifier(PruningClassifier):
         out_path = None,
         eval_every_epochs = None):
 
-        assert loss in ["mse","cross-entropy","hinge2","ncl"], "Currently only {{mse, cross-entropy, hinge2, ncl}} loss is supported"
+        assert loss in ["mse","cross-entropy","hinge2"], "Currently only {{mse}} loss is supported"
         assert ensemble_regularizer is None or ensemble_regularizer in ["none","L0", "L1", "hard-L0"], "Currently only {{none,L0, L1, hard-L0}} the ensemble regularizer is supported"
         assert l_tree_reg >= 0, "l_reg must be greater or equal to 0"
         assert batch_size >= 1, "batch_size must be at-least 1"
@@ -262,6 +263,7 @@ class ProxPruningClassifier(PruningClassifier):
         self.normalize_weights = normalize_weights
         self.batch_size = batch_size
         self.epochs = epochs
+        self.ncl_reg = ncl_reg
         self.verbose = verbose
         self.update_leaves = update_leaves
         self.out_path = out_path
@@ -275,34 +277,41 @@ class ProxPruningClassifier(PruningClassifier):
             proba = np.swapaxes(proba, 0, 1)
 
         output = np.array([w * p for w,p in zip(proba, self.weights_)]).sum(axis=0)
-
+        
         batch_size = output.shape[0]
         accuracy = (output.argmax(axis=1) == target) * 100.0
         n_trees = [self.num_trees() for _ in range(batch_size)]
         n_param = [self.num_parameters() for _ in range(batch_size)]
-        
+
         # Compute the appropriate loss. 
         if self.loss == "mse":
             target_one_hot = np.array( [ [1.0 if y == i else 0.0 for i in range(self.n_classes_)] for y in target] )
-            loss = (output - target_one_hot) * (output - target_one_hot)
-            loss_deriv = 2 * (output - target_one_hot)
-        elif self.loss == "cross-entropy":
-            target_one_hot = np.array( [ [1.0 if y == i else 0.0 for i in range(self.n_classes_)] for y in target] )
-            p = softmax(output, axis=1)
-            loss = -target_one_hot*np.log(p + 1e-7)
-            m = target.shape[0]
-            loss_deriv = softmax(output, axis=1)
-            loss_deriv[range(m),target_one_hot.argmax(axis=1)] -= 1
-        elif self.loss == "hinge2":
-            target_one_hot = np.array( [ [1.0 if y == i else -1.0 for i in range(self.n_classes_)] for y in target] )
-            zeros = np.zeros_like(target_one_hot)
-            loss = np.maximum(1.0 - target_one_hot * output, zeros)**2
-            loss_deriv = - 2 * target_one_hot * np.maximum(1.0 - target_one_hot * output, zeros) 
-        elif self.loss == "ncl":
-            # TODO
-            pass
-        else:
-            raise "Currently only the losses {{cross-entropy, mse, hinge2}} are supported, but you provided: {}".format(self.loss)
+            biases = []
+            ncl_deriv = []
+            for hpred, w in zip(proba, self.weights_):
+                biases.append( w * (hpred - target_one_hot) * (hpred - target_one_hot) )
+                
+                e = (hpred - target_one_hot) * (hpred - target_one_hot)
+                ncl_deriv.append( np.sum(np.mean(e,axis=1)) )
+            
+            ncl_deriv = (1.0 - self.ncl_reg) * np.array(ncl_deriv)
+            loss = self.ncl_reg * (output - target_one_hot) * (output - target_one_hot) + (1.0 - self.ncl_reg) * np.mean(biases, axis=0)
+            loss_deriv = self.ncl_reg * 2 * (output - target_one_hot) 
+            #ncl_deriv = (1.0 - self.ncl_reg) * np.mean( (proba - target_one_hot) * (proba - target_one_hot), axis=(1,2))
+        # elif self.loss == "cross-entropy":
+        #     target_one_hot = np.array( [ [1.0 if y == i else 0.0 for i in range(self.n_classes_)] for y in target] )
+        #     p = softmax(output, axis=1)
+        #     loss = -target_one_hot*np.log(p + 1e-7)
+        #     m = target.shape[0]
+        #     loss_deriv = softmax(output, axis=1)
+        #     loss_deriv[range(m),target_one_hot.argmax(axis=1)] -= 1
+        # elif self.loss == "hinge2":
+        #     target_one_hot = np.array( [ [1.0 if y == i else -1.0 for i in range(self.n_classes_)] for y in target] )
+        #     zeros = np.zeros_like(target_one_hot)
+        #     loss = np.maximum(1.0 - target_one_hot * output, zeros)**2
+        #     loss_deriv = - 2 * target_one_hot * np.maximum(1.0 - target_one_hot * output, zeros) 
+        # else:
+        #     raise "Currently only the losses {{cross-entropy, mse, hinge2}} are supported, but you provided: {}".format(self.loss)
         
         loss = np.sum(np.mean(loss,axis=1))
         
@@ -312,7 +321,7 @@ class ProxPruningClassifier(PruningClassifier):
             loss += self.l_ensemble_reg * np.linalg.norm(self.weights_,1)
 
         # Compute the gradients for the loss
-        directions = np.mean(proba*loss_deriv,axis=(1,2))
+        directions = np.mean(proba*loss_deriv,axis=(1,2)) + ncl_deriv
 
         # Compute the appropriate regularizer
         if self.tree_regularizer is not None and self.l_tree_reg > 0:

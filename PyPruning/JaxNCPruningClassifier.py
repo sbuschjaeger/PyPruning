@@ -10,6 +10,10 @@ from sklearn.metrics import accuracy_score
 from scipy.special import softmax
 from sklearn.tree import DecisionTreeClassifier
 
+import jax
+import jax.numpy as jnp
+from jax import value_and_grad
+
 from .PruningClassifier import PruningClassifier
 
 def create_mini_batches(inputs, targets, data, batch_size, shuffle=False):
@@ -76,105 +80,9 @@ def to_prob_simplex(x):
     projected_x = [max(xi + l, 0.0) for xi in x]
     return projected_x
 
-def node_regularizer(est):
-    """ Extract the number of nodes in the given tree 
 
-    Parameters
-    ----------
-    X : numpy matrix
-        A (N, d) matrix with the datapoints used for pruning where N is the number of data points and d is the dimensionality
-    
-    Y : numpy array / list of ints
-        A numpy array or list of N integers where each integer represents the class for each example. Classes should start with 0, so that for C classes the integer 0,1,...,C-1 are used
-
-    est: object
-        Estimator for which the regularizer is computed.
-
-    Returns
-    -------
-    u : float / int scalar
-        The computed regularizer
-    """
-    return est.tree_.node_count
-
-def avg_path_len_regularizer(est):
-    """ Extract the number of nodes in the given tree 
-
-    Parameters
-    ----------
-    X : numpy matrix
-        A (N, d) matrix with the datapoints used for pruning where N is the number of data points and d is the dimensionality
-    
-    Y : numpy array / list of ints
-        A numpy array or list of N integers where each integer represents the class for each example. Classes should start with 0, so that for C classes the integer 0,1,...,C-1 are used
-
-    est: object
-        Estimator for which the regularizer is computed.
-
-    Notes
-    -----
-    Thanks to Mojtaba Masoudinejad (mojtaba.masoudinejad@tu-dortmund.de) for the implementation
-
-    Returns
-    -------
-    u : float / int scalar
-        The computed regularizer
-    """
-    # %% Identify all child-parent relations
-    # ----- read data from the tree
-    n_nodes = est.tree_.node_count
-    children_left = est.tree_.children_left
-    children_right = est.tree_.children_right
-    samples = est.tree_.n_node_samples
-    weighted_n_node_samples = est.tree_.weighted_n_node_samples
-    impurity = est.tree_.impurity
-    total_sum_weights = weighted_n_node_samples[0]
-
-    # ----- Initial empty variables
-    is_leaves = np.zeros(shape = n_nodes, dtype = bool)
-    node_parent = np.zeros(shape = n_nodes, dtype = np.int64) # Parent node ID
-    r_node = np.zeros(shape = n_nodes, dtype = np.float64)
-
-    # ----- Initialize the stack
-    stack = [(0, -1)]  # [node id, parent id] root node has no parent => -1
-
-    # ----- Go downward to identify child/parent and leaf status
-    while len(stack) > 0:    
-        # check each node only once, using pop
-        node_id, parent  = stack.pop()
-        node_parent[node_id] = parent
-        
-        # childrens of a node are different
-        is_split_node = children_left[node_id] != children_right[node_id]
-        
-        # add data of split point to the stack to go through
-        if is_split_node:
-            child_l_id = children_left[node_id]
-            child_r_id = children_right[node_id]
-            stack.append((child_l_id, node_id))
-            stack.append((child_r_id, node_id))
-        else:
-            is_leaves[node_id] = True
-
-    # %% Identify all branches and probabilistic cost of each split node(branch)
-    node_cost = np.zeros(shape = n_nodes, dtype = np.float64)
-
-    for node_ind in range (n_nodes): # for all nodes
-        r_node[node_ind] = impurity[node_ind]
-        # r_node[node_ind] = (weighted_n_node_samples[node_ind] * impurity[node_ind] / total_sum_weights)
-            
-        if is_leaves[node_ind]:
-            current_parent = node_parent[node_ind]
-            upward_length = 1
-            while current_parent != -1:
-                node_cost[current_parent] = node_cost[current_parent] + upward_length * samples[node_ind]/samples[current_parent]
-                current_parent = node_parent[current_parent] # get the next parent node id
-                upward_length = upward_length + 1
-
-    return node_cost[0]
-
-class ProxPruningClassifier(PruningClassifier):
-    """ (Heterogeneous) Pruning via Proximal Gradient Descent
+class JaxNCPruningClassifier(PruningClassifier):
+    """ Pruning via Negative Corellation Learning + Proximal Gradient Descent
     
     This pruning method directly minimizes a constrained loss function :math:`L` including a regularizer :math:`R_1` via (stochastic) proximal gradient descent. There are two sets of constraints available. When soft constraints are used, then the following function is minimized
 
@@ -232,19 +140,17 @@ class ProxPruningClassifier(PruningClassifier):
         step_size = 1e-1,
         ensemble_regularizer = "hard-L0",
         l_ensemble_reg = 0,  
-        tree_regularizer = node_regularizer,
-        l_tree_reg = 0,
+        ncl_reg = 0,
         normalize_weights = True,
         batch_size = 256,
         epochs = 1,
         verbose = False, 
-        update_leaves = False,
         out_path = None,
         eval_every_epochs = None):
 
-        assert loss in ["mse","cross-entropy","hinge2","ncl"], "Currently only {{mse, cross-entropy, hinge2, ncl}} loss is supported"
+        assert loss in ["mse","cross-entropy","hinge2"], "Currently only {{mse, cross-entropy, hinge2}} loss is supported"
         assert ensemble_regularizer is None or ensemble_regularizer in ["none","L0", "L1", "hard-L0"], "Currently only {{none,L0, L1, hard-L0}} the ensemble regularizer is supported"
-        assert l_tree_reg >= 0, "l_reg must be greater or equal to 0"
+        assert ncl_reg >= 0, "ncl_reg must be greater or equal to 0"
         assert batch_size >= 1, "batch_size must be at-least 1"
         assert epochs >= 1, "epochs must be at-least 1"
 
@@ -257,94 +163,70 @@ class ProxPruningClassifier(PruningClassifier):
         self.step_size = step_size
         self.ensemble_regularizer = ensemble_regularizer
         self.l_ensemble_reg = l_ensemble_reg
-        self.tree_regularizer = tree_regularizer
-        self.l_tree_reg = l_tree_reg
+        self.ncl_reg = ncl_reg
         self.normalize_weights = normalize_weights
         self.batch_size = batch_size
         self.epochs = epochs
         self.verbose = verbose
-        self.update_leaves = update_leaves
         self.out_path = out_path
         self.eval_every_epochs = eval_every_epochs
 
     def next(self, proba, target, data):
         # If we update the leaves, then proba also changes and we need to recompute them. Otherwise we can just use the pre-computed probas
-        if self.update_leaves:
-            proba = self._individual_proba(data)
-        else:
-            proba = np.swapaxes(proba, 0, 1)
-
+        proba = np.swapaxes(proba, 0, 1)
         output = np.array([w * p for w,p in zip(proba, self.weights_)]).sum(axis=0)
 
         batch_size = output.shape[0]
         accuracy = (output.argmax(axis=1) == target) * 100.0
         n_trees = [self.num_trees() for _ in range(batch_size)]
         n_param = [self.num_parameters() for _ in range(batch_size)]
-        
-        # Compute the appropriate loss. 
-        if self.loss == "mse":
+
+        # params = self.weights_
+        def loss_fn(weights, proba, target):
             target_one_hot = np.array( [ [1.0 if y == i else 0.0 for i in range(self.n_classes_)] for y in target] )
-            loss = (output - target_one_hot) * (output - target_one_hot)
-            loss_deriv = 2 * (output - target_one_hot)
-        elif self.loss == "cross-entropy":
-            target_one_hot = np.array( [ [1.0 if y == i else 0.0 for i in range(self.n_classes_)] for y in target] )
-            p = softmax(output, axis=1)
-            loss = -target_one_hot*np.log(p + 1e-7)
-            m = target.shape[0]
-            loss_deriv = softmax(output, axis=1)
-            loss_deriv[range(m),target_one_hot.argmax(axis=1)] -= 1
-        elif self.loss == "hinge2":
-            target_one_hot = np.array( [ [1.0 if y == i else -1.0 for i in range(self.n_classes_)] for y in target] )
-            zeros = np.zeros_like(target_one_hot)
-            loss = np.maximum(1.0 - target_one_hot * output, zeros)**2
-            loss_deriv = - 2 * target_one_hot * np.maximum(1.0 - target_one_hot * output, zeros) 
-        elif self.loss == "ncl":
-            # TODO
-            pass
-        else:
-            raise "Currently only the losses {{cross-entropy, mse, hinge2}} are supported, but you provided: {}".format(self.loss)
-        
-        loss = np.sum(np.mean(loss,axis=1))
-        
-        if self.ensemble_regularizer == "L0":
-            loss += self.l_ensemble_reg * np.linalg.norm(self.weights_,0)
-        elif self.ensemble_regularizer == "L1":
-            loss += self.l_ensemble_reg * np.linalg.norm(self.weights_,1)
+            
+            biases = []
+            for hpred, w in zip(proba, weights):
+                biases.append( w * jnp.mean(jnp.square( hpred - target_one_hot )) )
+                # print(biases[-1])
+            bias = jnp.mean(jnp.array(biases))
 
-        # Compute the gradients for the loss
-        directions = np.mean(proba*loss_deriv,axis=(1,2))
+            fbar = jnp.array([w * p for p,w in zip(proba, weights)]).sum(axis=0)
+            loss = jnp.mean(jnp.square( fbar - target_one_hot ))
 
-        # Compute the appropriate regularizer
-        if self.tree_regularizer is not None and self.l_tree_reg > 0:
-            tree_regs = np.array([ self.tree_regularizer(est) for est in self.estimators_])
+            if self.ensemble_regularizer == "L0":
+                loss += self.l_ensemble_reg * np.linalg.norm(weights,0)
+            elif self.ensemble_regularizer == "L1":
+                loss += self.l_ensemble_reg * np.linalg.norm(weights,1)
 
-            loss += self.l_tree_reg * np.sum( [ (w * tr) for w, tr in zip(self.weights_, tree_regs)] )
-            tree_reg_deriv = self.l_tree_reg * tree_regs
-        else:
-            tree_reg_deriv = 0
+            return self.ncl_reg * loss + (1.0 - self.ncl_reg) * bias
+            # n_classes = fbar.shape[1]
+            # n_preds = fbar.shape[0]
 
-        # iloss = np.array([ ((p - target_one_hot)**2).mean() for p in proba])
-        # loss += iloss
-        # iloss_reg = np.array( [ (2*(p - target_one_hot)).mean() for p in proba])
-        # tmp_w = self.weights_ - self.step_size*directions - self.step_size*tree_reg_deriv - self.step_size*iloss_reg 
+            # eye_matrix = jnp.eye(n_classes).repeat(n_preds, 1, 1)
+            # D = 2.0*eye_matrix
+
+            # diversities = []
+            # for pred in proba:
+            #     diff = pred - fbar 
+            #     covar = jnp.bmm(diff.unsqueeze(1), jnp.bmm(D, diff.unsqueeze(2))).squeeze()
+            #     div = 1.0/self.n_estimators_ * 0.5 * covar
+            #     diversities.append(div)
+
+            # div = jnp.cat(diversities,dim=0).sum(dim=1).mean(dim=0)
+
+            # return bias
+            # err = forward(params, X) - y
+            # return jnp.mean(jnp.square(err))  # mse
+
+
+        # grad_fn = jax.grad(loss_fn)
+        cur_loss, grads = value_and_grad(loss_fn)(self.weights_, proba, target)
+        # grads = grad_fn(self.weights_, proba, target)
 
         # Perform the gradient step + projection 
-        tmp_w = self.weights_ - self.step_size*directions - self.step_size*tree_reg_deriv 
+        tmp_w = self.weights_ - self.step_size*grads
         
-        if self.update_leaves:
-            # compute direction per tree
-            # tree_deriv = proba*loss_deriv
-            for i, h in enumerate(self.estimators_):
-                tree_grad = (self.weights_[i] * loss_deriv)[:,np.newaxis,:]
-                # find idx
-                idx = h.apply(data)
-                h.tree_.value[idx] = h.tree_.value[idx] - self.step_size * tree_grad[:,:,h.classes_.astype(int)]
-                # update model
-                #h.tree_.value[idx] = h.tree_.value[idx] - self.step_size*h.tree_.value[idx]*tree_deriv[i,:,np.newaxis]
-                
-                #step = self.step_size*tree_deriv[i,:,np.newaxis]
-                #h.tree_.value[idx] = h.tree_.value[idx] - step[:,:,self.classes_.astype(int)]
-
         if self.ensemble_regularizer == "L0":
             tmp = np.sqrt(2 * self.l_ensemble_reg * self.step_size)
             tmp_w = np.array([0 if abs(w) < tmp else w for w in tmp_w])
@@ -369,8 +251,8 @@ class ProxPruningClassifier(PruningClassifier):
                 self.weights_[i] = w
         else:
             self.weights_ = tmp_w
-        
-        return {"loss":loss, "accuracy": accuracy, "num_trees": n_trees, "num_parameters" : n_param}
+            
+        return {"loss":cur_loss*batch_size, "accuracy": accuracy, "num_trees": n_trees, "num_parameters" : n_param}
 
     def num_trees(self):
         """ Returns the number of nonzero weights """
@@ -383,14 +265,6 @@ class ProxPruningClassifier(PruningClassifier):
     def prune_(self, proba, target, data):
         proba = np.swapaxes(proba, 0, 1)
         self.weights_ = np.array([1.0 / proba.shape[1] for _ in range(proba.shape[1])])
-
-        if self.update_leaves:
-            # SKlearn stores the raw counts instead of probabilities. For SGD its better to have the 
-            # probabilities for numerical stability. 
-            # tree.tree_.value is not writeable, but we can modify the values inplace. Thus we 
-            # use [:] to copy the array into the normalized array. Also tree.tree_.value has a strange shape (batch_size, 1, n_classes)
-            for tree in self.estimators_:
-                tree.tree_.value[:] = tree.tree_.value / tree.tree_.value.sum(axis=(1,2))[:,np.newaxis,np.newaxis]
 
         for epoch in range(self.epochs):
 
