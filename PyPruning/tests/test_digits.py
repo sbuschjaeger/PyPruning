@@ -7,6 +7,10 @@ import numpy as np
 import pandas as pd
 import argparse
 
+#SKLearn sometimes throws warnings due to n_jobs not being supported in the future for KMeans. Just ignore them for now
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning)
+
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.ensemble import RandomForestClassifier
@@ -78,6 +82,7 @@ for ce in [kmeans, agglomerative]:
             sys.exit(1)
         else:
             print("Test passed for {} with accuracy {}".format(method, acc*100.0))
+sys.exit(1)
 
 for m in [reduced_error, neg_auc, complementariness, margin_distance, drep]:
     pruned_model = GreedyPruningClassifier(metric = m, n_estimators = n_prune)
