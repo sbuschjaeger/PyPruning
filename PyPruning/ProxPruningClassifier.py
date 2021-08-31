@@ -235,6 +235,7 @@ class ProxPruningClassifier(PruningClassifier):
         tree_regularizer = node_regularizer,
         l_tree_reg = 0,
         normalize_weights = True,
+        update_weights = True,
         batch_size = 256,
         epochs = 1,
         verbose = False, 
@@ -266,6 +267,7 @@ class ProxPruningClassifier(PruningClassifier):
         self.update_leaves = update_leaves
         self.out_path = out_path
         self.eval_every_epochs = eval_every_epochs
+        self.update_weights = update_weights
 
     def next(self, proba, target, data):
         # If we update the leaves, then proba also changes and we need to recompute them. Otherwise we can just use the pre-computed probas
@@ -316,21 +318,13 @@ class ProxPruningClassifier(PruningClassifier):
 
         # Compute the appropriate regularizer
         if self.tree_regularizer is not None and self.l_tree_reg > 0:
-            tree_regs = np.array([ self.tree_regularizer(est) for est in self.estimators_])
+            #tree_regs = np.array([ self.tree_regularizer(est) for est in self.estimators_])
 
-            loss += self.l_tree_reg * np.sum( [ (w * tr) for w, tr in zip(self.weights_, tree_regs)] )
-            tree_reg_deriv = self.l_tree_reg * tree_regs
+            loss += self.l_tree_reg * np.sum( [ (w * tr) for w, tr in zip(self.weights_, self.tree_regs)] )
+            tree_reg_deriv = self.l_tree_reg * self.tree_regs
         else:
             tree_reg_deriv = 0
 
-        # iloss = np.array([ ((p - target_one_hot)**2).mean() for p in proba])
-        # loss += iloss
-        # iloss_reg = np.array( [ (2*(p - target_one_hot)).mean() for p in proba])
-        # tmp_w = self.weights_ - self.step_size*directions - self.step_size*tree_reg_deriv - self.step_size*iloss_reg 
-
-        # Perform the gradient step + projection 
-        tmp_w = self.weights_ - self.step_size*directions - self.step_size*tree_reg_deriv 
-        
         if self.update_leaves:
             # compute direction per tree
             # tree_deriv = proba*loss_deriv
@@ -345,30 +339,35 @@ class ProxPruningClassifier(PruningClassifier):
                 #step = self.step_size*tree_deriv[i,:,np.newaxis]
                 #h.tree_.value[idx] = h.tree_.value[idx] - step[:,:,self.classes_.astype(int)]
 
-        if self.ensemble_regularizer == "L0":
-            tmp = np.sqrt(2 * self.l_ensemble_reg * self.step_size)
-            tmp_w = np.array([0 if abs(w) < tmp else w for w in tmp_w])
-        elif self.ensemble_regularizer == "L1":
-            sign = np.sign(tmp_w)
-            tmp_w = np.abs(tmp_w) - self.step_size*self.l_ensemble_reg
-            tmp_w = sign*np.maximum(tmp_w,0)
-        elif self.ensemble_regularizer == "hard-L0":
-            top_K = np.argsort(tmp_w)[-self.l_ensemble_reg:]
-            tmp_w = np.array([w if i in top_K else 0 for i,w in enumerate(tmp_w)])
+        if self.update_weights:
+            # TODO if update weights:
+            # Perform the gradient step + projection 
+            tmp_w = self.weights_ - self.step_size*directions - self.step_size*tree_reg_deriv 
 
-        # If set, normalize the weights. Note that we use the support of tmp_w for the projection onto the probability simplex
-        # as described in http://proceedings.mlr.press/v28/kyrillidis13.pdf
-        # Thus, we first need to extract the nonzero weights, project these and then copy them back into corresponding array
-        
-        if self.normalize_weights and len(tmp_w) > 0:
-            nonzero_idx = np.nonzero(tmp_w)[0]
-            nonzero_w = tmp_w[nonzero_idx]
-            nonzero_w = to_prob_simplex(nonzero_w)
-            self.weights_ = np.zeros((len(tmp_w)))
-            for i,w in zip(nonzero_idx, nonzero_w):
-                self.weights_[i] = w
-        else:
-            self.weights_ = tmp_w
+            if self.ensemble_regularizer == "L0":
+                tmp = np.sqrt(2 * self.l_ensemble_reg * self.step_size)
+                tmp_w = np.array([0 if abs(w) < tmp else w for w in tmp_w])
+            elif self.ensemble_regularizer == "L1":
+                sign = np.sign(tmp_w)
+                tmp_w = np.abs(tmp_w) - self.step_size*self.l_ensemble_reg
+                tmp_w = sign*np.maximum(tmp_w,0)
+            elif self.ensemble_regularizer == "hard-L0":
+                top_K = np.argsort(tmp_w)[-self.l_ensemble_reg:]
+                tmp_w = np.array([w if i in top_K else 0 for i,w in enumerate(tmp_w)])
+
+            # If set, normalize the weights. Note that we use the support of tmp_w for the projection onto the probability simplex
+            # as described in http://proceedings.mlr.press/v28/kyrillidis13.pdf
+            # Thus, we first need to extract the nonzero weights, project these and then copy them back into corresponding array
+            
+            if self.normalize_weights and len(tmp_w) > 0:
+                nonzero_idx = np.nonzero(tmp_w)[0]
+                nonzero_w = tmp_w[nonzero_idx]
+                nonzero_w = to_prob_simplex(nonzero_w)
+                self.weights_ = np.zeros((len(tmp_w)))
+                for i,w in zip(nonzero_idx, nonzero_w):
+                    self.weights_[i] = w
+            else:
+                self.weights_ = tmp_w
         
         return {"loss":loss, "accuracy": accuracy, "num_trees": n_trees, "num_parameters" : n_param}
 
@@ -391,6 +390,9 @@ class ProxPruningClassifier(PruningClassifier):
             # use [:] to copy the array into the normalized array. Also tree.tree_.value has a strange shape (batch_size, 1, n_classes)
             for tree in self.estimators_:
                 tree.tree_.value[:] = tree.tree_.value / tree.tree_.value.sum(axis=(1,2))[:,np.newaxis,np.newaxis]
+        
+        if self.tree_regularizer is not None and self.l_tree_reg > 0:
+            self.tree_regs = np.array([ self.tree_regularizer(est) for est in self.estimators_])
 
         for epoch in range(self.epochs):
 
