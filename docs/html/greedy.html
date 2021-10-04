@@ -1,78 +1,37 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
   <title>Greedy &mdash; PyPruning  documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Ranking" href="rank.html" />
     <link rel="prev" title="Pruning an ensemble" href="available.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="index.html" class="icon icon-home"> PyPruning
-          
-
-          
-            
             <img src="_static/pruning-logo.png" class="logo" alt="Logo"/>
-          
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -80,18 +39,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="index.html">PyPruning</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="available.html">Pruning an ensemble</a><ul class="current">
@@ -107,80 +55,36 @@
 <li class="toctree-l1"><a class="reference internal" href="papers.html">Reproducing results from literature</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">PyPruning</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content style-external-links">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-        
           <li><a href="available.html">Pruning an ensemble</a> &raquo;</li>
-        
       <li>Greedy</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-          
-            
               <a href="https://github.com/sbuschjaeger/pypruning/blob/master/docs/greedy.rst" class="fa fa-github"> Edit on GitHub</a>
-            
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="module-PyPruning.GreedyPruningClassifier">
-<span id="greedy"></span><h1>Greedy<a class="headerlink" href="#module-PyPruning.GreedyPruningClassifier" title="Permalink to this headline">¶</a></h1>
+             
+  <section id="module-PyPruning.GreedyPruningClassifier">
+<span id="greedy"></span><h1>Greedy<a class="headerlink" href="#module-PyPruning.GreedyPruningClassifier" title="Permalink to this headline"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="PyPruning.GreedyPruningClassifier.GreedyPruningClassifier">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">PyPruning.GreedyPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">GreedyPruningClassifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">n_estimators=5</span></em>, <em class="sig-param"><span class="pre">metric=&lt;function</span> <span class="pre">reduced_error&gt;</span></em>, <em class="sig-param"><span class="pre">n_jobs=8</span></em>, <em class="sig-param"><span class="pre">metric_options=None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.GreedyPruningClassifier.GreedyPruningClassifier" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">PyPruning.GreedyPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">GreedyPruningClassifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">n_estimators=5</span></em>, <em class="sig-param"><span class="pre">metric=&lt;function</span> <span class="pre">reduced_error&gt;</span></em>, <em class="sig-param"><span class="pre">n_jobs=8</span></em>, <em class="sig-param"><span class="pre">metric_options=None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.GreedyPruningClassifier.GreedyPruningClassifier" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="extending.html#PyPruning.PruningClassifier.PruningClassifier" title="PyPruning.PruningClassifier.PruningClassifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyPruning.PruningClassifier.PruningClassifier</span></code></a></p>
 <p>Greedy / Ordering-based pruning.</p>
 <p>Greedy or ordering-based methods order the estimators in the ensemble according to their performance. In contrast to ranking-based pruning however they also consider the already selected sub-ensemble for selecting the next classifier. They start with the empty ensemble and then greedily select in each round that classifier which minimizes a loss function the most:</p>
@@ -202,7 +106,7 @@
 </div>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="PyPruning.GreedyPruningClassifier.GreedyPruningClassifier.n_estimators">
-<span class="sig-name descname"><span class="pre">n_estimators</span></span><a class="headerlink" href="#PyPruning.GreedyPruningClassifier.GreedyPruningClassifier.n_estimators" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">n_estimators</span></span><a class="headerlink" href="#PyPruning.GreedyPruningClassifier.GreedyPruningClassifier.n_estimators" title="Permalink to this definition"></a></dt>
 <dd><p>The number of estimators which should be selected.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -213,7 +117,7 @@
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="PyPruning.GreedyPruningClassifier.GreedyPruningClassifier.metric">
-<span class="sig-name descname"><span class="pre">metric</span></span><a class="headerlink" href="#PyPruning.GreedyPruningClassifier.GreedyPruningClassifier.metric" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">metric</span></span><a class="headerlink" href="#PyPruning.GreedyPruningClassifier.GreedyPruningClassifier.metric" title="Permalink to this definition"></a></dt>
 <dd><p>A function that assigns a score (smaller is better) to each classifier which is then used for selecting the next classifier in each round</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -224,7 +128,7 @@
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="PyPruning.GreedyPruningClassifier.GreedyPruningClassifier.n_jobs">
-<span class="sig-name descname"><span class="pre">n_jobs</span></span><a class="headerlink" href="#PyPruning.GreedyPruningClassifier.GreedyPruningClassifier.n_jobs" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">n_jobs</span></span><a class="headerlink" href="#PyPruning.GreedyPruningClassifier.GreedyPruningClassifier.n_jobs" title="Permalink to this definition"></a></dt>
 <dd><p>The number of threads used for computing the individual metrics for each classifier.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -235,7 +139,7 @@
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="PyPruning.GreedyPruningClassifier.GreedyPruningClassifier.metric_options">
-<span class="sig-name descname"><span class="pre">metric_options</span></span><a class="headerlink" href="#PyPruning.GreedyPruningClassifier.GreedyPruningClassifier.metric_options" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">metric_options</span></span><a class="headerlink" href="#PyPruning.GreedyPruningClassifier.GreedyPruningClassifier.metric_options" title="Permalink to this definition"></a></dt>
 <dd><p>Any additional metric_options are directly supplied to the metric function via the ** operator</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -246,7 +150,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="PyPruning.GreedyPruningClassifier.GreedyPruningClassifier.prune_">
-<span class="sig-name descname"><span class="pre">prune_</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proba</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.GreedyPruningClassifier.GreedyPruningClassifier.prune_" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">prune_</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proba</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.GreedyPruningClassifier.GreedyPruningClassifier.prune_" title="Permalink to this definition"></a></dt>
 <dd><p>Prunes the ensemble using the ensemble predictions proba and the pruning data targets / data. If the pruning method requires access to the original ensemble members you can access these via <a href="#id1"><span class="problematic" id="id2">self.estimators_</span></a>. Note that <a href="#id3"><span class="problematic" id="id4">self.estimators_</span></a> is already a deep-copy of the estimators so you are also free to change the estimators in this list if you want to.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -271,7 +175,7 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="PyPruning.GreedyPruningClassifier.complementariness">
-<span class="sig-prename descclassname"><span class="pre">PyPruning.GreedyPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">complementariness</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensemble_proba</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selected_models</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.GreedyPruningClassifier.complementariness" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">PyPruning.GreedyPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">complementariness</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensemble_proba</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selected_models</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.GreedyPruningClassifier.complementariness" title="Permalink to this definition"></a></dt>
 <dd><p>Computes the complementariness of the i-th classifier wrt. to the sub-ensemble. A classifier is complementary to the sub-ensemble if it disagrees with the ensemble, but is correct (and the ensemble is wrong)</p>
 <dl class="simple">
 <dt>Reference:</dt><dd><p>Martínez-Muñoz, G., &amp; Suárez, A. (2004). Aggregation ordering in bagging. Proceedings of the IASTED International Conference. Applied Informatics, 258–263. Retrieved from <a class="reference external" href="https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.59.2035&amp;rep=rep1&amp;type=pdf">https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.59.2035&amp;rep=rep1&amp;type=pdf</a></p>
@@ -281,7 +185,7 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="PyPruning.GreedyPruningClassifier.drep">
-<span class="sig-prename descclassname"><span class="pre">PyPruning.GreedyPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">drep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensemble_proba</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selected_models</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.GreedyPruningClassifier.drep" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">PyPruning.GreedyPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">drep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensemble_proba</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selected_models</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.GreedyPruningClassifier.drep" title="Permalink to this definition"></a></dt>
 <dd><p>A multi-class version of a PAC-style bound which includes the diversity of the sub-ensemble. This basically counts the number of different predictions between the i-th classifier and the sub-ensemble. The paper suggest to use <span class="math notranslate nohighlight">\(\rho \in \{0.2, 0.25, \dots, 0.5 \}\)</span>. Our default is 0.25 here because it just works well. You can supply a different <code class="docutils literal notranslate"><span class="pre">rho</span></code> via the <code class="docutils literal notranslate"><span class="pre">metric_options</span></code> parameter of <a class="reference internal" href="#module-PyPruning.GreedyPruningClassifier" title="PyPruning.GreedyPruningClassifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">GreedyPruningClassifier</span></code></a>.</p>
 <dl class="simple">
 <dt>Reference:</dt><dd><p>Li, N., Yu, Y., &amp; Zhou, Z.-H. (2012). Diversity Regularized Ensemble Pruning. In P. A. Flach, T. De Bie, &amp; N. Cristianini (Eds.), Machine Learning and Knowledge Discovery in Databases (pp. 330–345). Berlin, Heidelberg: Springer Berlin Heidelberg. <a class="reference external" href="https://link.springer.com/content/pdf/10.1007%2F978-3-642-33460-3.pdf">https://link.springer.com/content/pdf/10.1007%2F978-3-642-33460-3.pdf</a></p>
@@ -291,7 +195,7 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="PyPruning.GreedyPruningClassifier.margin_distance">
-<span class="sig-prename descclassname"><span class="pre">PyPruning.GreedyPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">margin_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensemble_proba</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selected_models</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">0.25]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.GreedyPruningClassifier.margin_distance" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">PyPruning.GreedyPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">margin_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensemble_proba</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selected_models</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">0.25]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.GreedyPruningClassifier.margin_distance" title="Permalink to this definition"></a></dt>
 <dd><p>Computes how including the i-th classifiers into the sub-ensemble changes its prediction towards a reference vector. The paper randomly samples p from <span class="math notranslate nohighlight">\((0, 0.25)\)</span> which we also use as a default here. You can supply a different <code class="docutils literal notranslate"><span class="pre">p_range</span></code> via the <code class="docutils literal notranslate"><span class="pre">metric_options</span></code> parameter of <a class="reference internal" href="#module-PyPruning.GreedyPruningClassifier" title="PyPruning.GreedyPruningClassifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">GreedyPruningClassifier</span></code></a></p>
 <dl class="simple">
 <dt>Reference:</dt><dd><p>Martínez-Muñoz, G., &amp; Suárez, A. (2004). Aggregation ordering in bagging. Proceedings of the IASTED International Conference. Applied Informatics, 258–263. Retrieved from <a class="reference external" href="https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.59.2035&amp;rep=rep1&amp;type=pdf">https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.59.2035&amp;rep=rep1&amp;type=pdf</a></p>
@@ -301,13 +205,13 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="PyPruning.GreedyPruningClassifier.neg_auc">
-<span class="sig-prename descclassname"><span class="pre">PyPruning.GreedyPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">neg_auc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensemble_proba</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selected_models</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.GreedyPruningClassifier.neg_auc" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">PyPruning.GreedyPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">neg_auc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensemble_proba</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selected_models</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.GreedyPruningClassifier.neg_auc" title="Permalink to this definition"></a></dt>
 <dd><p>Compute the (negative) roc-auc score of the sub-ensemble including the i-th classifier.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="PyPruning.GreedyPruningClassifier.reduced_error">
-<span class="sig-prename descclassname"><span class="pre">PyPruning.GreedyPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">reduced_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensemble_proba</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selected_models</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.GreedyPruningClassifier.reduced_error" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">PyPruning.GreedyPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">reduced_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensemble_proba</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selected_models</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.GreedyPruningClassifier.reduced_error" title="Permalink to this definition"></a></dt>
 <dd><p>Computes the error of the sub-ensemble including the i-th classifier.</p>
 <dl class="simple">
 <dt>Reference:</dt><dd><p>Margineantu, D., &amp; Dietterich, T. G. (1997). Pruning Adaptive Boosting. Proceedings of the Fourteenth International Conference on Machine Learning, 211–218. <a class="reference external" href="https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.38.7017&amp;rep=rep1&amp;type=pdf">https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.38.7017&amp;rep=rep1&amp;type=pdf</a></p>
@@ -315,54 +219,37 @@
 </dl>
 </dd></dl>
 
-</div>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="rank.html" class="btn btn-neutral float-right" title="Ranking" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="available.html" class="btn btn-neutral float-left" title="Pruning an ensemble" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="rank.html" class="btn btn-neutral float-right" title="Ranking" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2021, Sebastian Buschjäger.
-
-    </p>
+    <p>&#169; Copyright 2021, Sebastian Buschjäger.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>
