@@ -1,6 +1,8 @@
 from functools import partial
 
-from sklearn.metrics import pairwise 
+from sklearn.metrics import pairwise
+
+from PyPruning.LeafRefinement import LeafRefinement 
 
 from .MIQPPruningClassifier import MIQPPruningClassifier, combined, combined_error
 from .GreedyPruningClassifier import GreedyPruningClassifier, reduced_error, complementariness, margin_distance, drep
@@ -49,6 +51,8 @@ def create_pruner(method = "reduced_error", **kwargs):
     elif method == "cluster_centroids":
         # Original publication uses simulated annealing. We stick to kmeans  
         return ClusterPruningClassifier(cluster_estimators=kmeans, select_estimators=centroid_selector, **kwargs)
+    elif method == "leaf_refinement":
+        return LeafRefinement(**kwargs)
     # elif method == "disagreement":
     #     return MIQPPruningClassifier(single_metric=None, pairwise_metric=disagreement, alpha = 1.0)
 
