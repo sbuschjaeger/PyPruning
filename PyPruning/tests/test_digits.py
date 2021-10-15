@@ -7,6 +7,10 @@ import numpy as np
 import pandas as pd
 import argparse
 
+#SKLearn sometimes throws warnings due to n_jobs not being supported in the future for KMeans. Just ignore them for now
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning)
+
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.ensemble import RandomForestClassifier
@@ -34,7 +38,7 @@ Xtrain, Xprune, ytrain, yprune = train_test_split(XTP, ytp, test_size=0.25, rand
 n_base = 128
 n_prune = 8
 
-target_accuracy = 0.88
+target_accuracy = 0.80
 
 model = RandomForestClassifier(n_estimators=n_prune)
 model.fit(Xtrain, ytrain)

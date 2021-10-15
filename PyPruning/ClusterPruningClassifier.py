@@ -179,6 +179,7 @@ class ClusterPruningClassifier(PruningClassifier):
         self.cluster_estimators = cluster_estimators
         self.select_estimators = select_estimators
         self.cluster_mode = cluster_mode
+
         if cluster_options is None:
             self.cluster_options = {}
         else:

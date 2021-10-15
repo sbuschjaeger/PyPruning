@@ -1,76 +1,35 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
   <title>PyPruning &mdash; PyPruning  documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Pruning an ensemble" href="available.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="#" class="icon icon-home"> PyPruning
-          
-
-          
-            
             <img src="_static/pruning-logo.png" class="logo" alt="Logo"/>
-          
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -78,18 +37,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">PyPruning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="available.html">Pruning an ensemble</a></li>
@@ -97,75 +45,32 @@
 <li class="toctree-l1"><a class="reference internal" href="papers.html">Reproducing results from literature</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="#">PyPruning</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content style-external-links">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="#" class="icon icon-home"></a> &raquo;</li>
-        
       <li>PyPruning</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-          
-            
               <a href="https://github.com/sbuschjaeger/pypruning/blob/master/docs/index.rst" class="fa fa-github"> Edit on GitHub</a>
-            
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="pypruning">
-<h1>PyPruning<a class="headerlink" href="#pypruning" title="Permalink to this headline">¶</a></h1>
+             
+  <section id="pypruning">
+<h1>PyPruning<a class="headerlink" href="#pypruning" title="Permalink to this headline"></a></h1>
 <div class="toctree-wrapper compound">
 </div>
 <p>This package provides implementations for some common ensemble pruning algorithms. Pruning algorithms aim to select the best subset of an trained ensemble to minimize memory consumption and maximize accuracy. Currently, six types of pruning algorithms are implemented:</p>
@@ -178,9 +83,9 @@
 <li><p><a class="reference internal" href="prox.html#module-PyPruning.ProxPruningClassifier" title="PyPruning.ProxPruningClassifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProxPruningClassifier</span></code></a>: Minimize a (regularized) loss function via (stochastic) proximal gradient descent over the ensembles weights.</p></li>
 </ul>
 <p>An example on how to use this code can be found in <a class="reference internal" href="available.html"><span class="doc">Pruning an ensemble</span></a>.</p>
-</div>
-<div class="section" id="how-to-install">
-<h1>How to install<a class="headerlink" href="#how-to-install" title="Permalink to this headline">¶</a></h1>
+</section>
+<section id="how-to-install">
+<h1>How to install<a class="headerlink" href="#how-to-install" title="Permalink to this headline"></a></h1>
 <p>You can install this package via directly via pip from git</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">git</span><span class="o">+</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">sbuschjaeger</span><span class="o">/</span><span class="n">PyPruning</span><span class="o">.</span><span class="n">git</span>
 </pre></div>
@@ -192,8 +97,8 @@
 <span class="n">conda</span> <span class="n">activate</span> <span class="n">pypruning</span>
 </pre></div>
 </div>
-<div class="section" id="some-notes-on-the-miqppruningclassifier">
-<h2>Some notes on the MIQPPruningClassifier<a class="headerlink" href="#some-notes-on-the-miqppruningclassifier" title="Permalink to this headline">¶</a></h2>
+<section id="some-notes-on-the-miqppruningclassifier">
+<h2>Some notes on the MIQPPruningClassifier<a class="headerlink" href="#some-notes-on-the-miqppruningclassifier" title="Permalink to this headline"></a></h2>
 <p>For implementing the <a class="reference internal" href="MIQP.html#module-PyPruning.MIQPPruningClassifier" title="PyPruning.MIQPPruningClassifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">MIQPPruningClassifier</span></code></a> we use <a class="reference external" href="https://www.cvxpy.org/">cvxpy</a> which does <strong>not</strong> come with a MIQP solver. If you want to use this algorithm you have to manually install a solver, e.g.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">cvopt</span>
 </pre></div>
@@ -203,67 +108,50 @@
 </pre></div>
 </div>
 <p>For more information on setting the solver for <a class="reference internal" href="MIQP.html#module-PyPruning.MIQPPruningClassifier" title="PyPruning.MIQPPruningClassifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">MIQPPruningClassifier</span></code></a> have a look <a class="reference external" href="https://www.cvxpy.org/tutorial/advanced/index.html#solve-method-options">here</a>.</p>
-</div>
-</div>
-<div class="section" id="acknowledgements">
-<h1>Acknowledgements<a class="headerlink" href="#acknowledgements" title="Permalink to this headline">¶</a></h1>
+</section>
+</section>
+<section id="acknowledgements">
+<h1>Acknowledgements<a class="headerlink" href="#acknowledgements" title="Permalink to this headline"></a></h1>
 <p>The software is written and maintained by <a class="reference external" href="https://sbuschjaeger.github.io/">Sebastian Buschjäger</a> as part of his work at the <a class="reference external" href="https://www-ai.cs.tu-dortmund.de">Chair for Artificial Intelligence</a> <a class="reference internal" href="_images/ls8-logo-shadow.svg"><img alt="ls8" src="_images/ls8-logo-shadow.svg" width="25" /></a> at the TU Dortmund University and the <a class="reference external" href="https://sfb876.tu-dortmund.de">Collaborative Research Center 876</a> <a class="reference internal" href="_images/sfb-logo.svg"><img alt="sfb" src="_images/sfb-logo.svg" width="20" /></a>. If you have any question feel free to contact me under <a class="reference external" href="mailto:sebastian&#46;buschjaeger&#37;&#52;&#48;tu-dortmund&#46;de">sebastian<span>&#46;</span>buschjaeger<span>&#64;</span>tu-dortmund<span>&#46;</span>de</a>.</p>
 <p>Special thanks goes to <a class="reference external" href="mailto:henri&#46;petuker&#37;&#52;&#48;tu-dortmund&#46;de">Henri Petuker</a> who provided parts of this implementation during his bachelor thesis and <a class="reference external" href="mailto:david&#46;clemens&#37;&#52;&#48;tu-dortmund&#46;de">David Clemens</a> who made the logo.</p>
-</div>
-<div class="section" id="indices-and-tables">
-<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+</section>
+<section id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline"></a></h1>
 <ul class="simple">
 <li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
 <li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
 <li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
 </ul>
-</div>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="available.html" class="btn btn-neutral float-right" title="Pruning an ensemble" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2021, Sebastian Buschjäger.
-
-    </p>
+    <p>&#169; Copyright 2021, Sebastian Buschjäger.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>
