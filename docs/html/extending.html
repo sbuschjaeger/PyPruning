@@ -118,7 +118,7 @@
 <span id="pypruning-pruningclassifier-module"></span><h3>PyPruning.PruningClassifier module<a class="headerlink" href="#module-PyPruning.PruningClassifier" title="Permalink to this headline"></a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="PyPruning.PruningClassifier.PruningClassifier">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">PyPruning.PruningClassifier.</span></span><span class="sig-name descname"><span class="pre">PruningClassifier</span></span><a class="headerlink" href="#PyPruning.PruningClassifier.PruningClassifier" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PyPruning.PruningClassifier.</span></span><span class="sig-name descname"><span class="pre">PruningClassifier</span></span><a class="headerlink" href="#PyPruning.PruningClassifier.PruningClassifier" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
 <p>This abstract class forms the basis of all pruning methods and offers a unified interface. New pruning methods must extend this class and implement the <a href="#id1"><span class="problematic" id="id2">prune_</span></a> method as detailed below.</p>
 <dl class="py attribute">
@@ -208,18 +208,15 @@
 <li><p><strong>n_classes</strong> (<em>int</em>) – The total number of classes. Usually, this it should be n_classes = len(classes). However, sometimes estimators are only fitted on a subset of data (e.g. during cross validation or bootstrapping) and the prune set might contain classes which are not in the original training set and vice-versa. In this case its best to supply n_classes beforehand.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>The pruned ensemble (self)</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>The pruned ensemble (self).</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="PyPruning.PruningClassifier.PruningClassifier.prune_">
-<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">prune_</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proba</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.PruningClassifier.PruningClassifier.prune_" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">prune_</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proba</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.PruningClassifier.PruningClassifier.prune_" title="Permalink to this definition"></a></dt>
 <dd><p>Prunes the ensemble using the ensemble predictions proba and the pruning data targets / data. If the pruning method requires access to the original ensemble members you can access these via <a href="#id5"><span class="problematic" id="id6">self.estimators_</span></a>. Note that <a href="#id7"><span class="problematic" id="id8">self.estimators_</span></a> is already a deep-copy of the estimators so you are also free to change the estimators in this list if you want to.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
