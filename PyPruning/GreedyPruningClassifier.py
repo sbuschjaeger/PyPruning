@@ -26,7 +26,7 @@ def neg_auc(i, ensemble_proba, selected_models, target):
     sub_proba = ensemble_proba[selected_models, :, :]
     pred = 1.0 / (1 + len(sub_proba)) * (sub_proba.sum(axis=0) + iproba)
 
-    if(sub_proba.shape[1] == 2):
+    if(pred.shape[1] == 2):
         pred = pred.argmax(axis=1)
         return - 1.0 * roc_auc_score(target, pred)
     else:

@@ -20,8 +20,8 @@ jobs:
           activate-environment: pypruning
           environment-file: environment.yml
       - run: |
-          cd PyPruning/tests
-          ./test_digits.py 
+          cd tests
+          python3 test_pypruning.py --data magic
       # - name: Commit files # transfer the new html files back into the repository
       #   run: |
       #     git config --local user.name "sbuschjaeger"

@@ -1,18 +1,17 @@
+from asyncio import base_tasks
+from pickletools import optimize
 import numpy as np
 from joblib import Parallel, delayed
 import numbers
 import time
-from sklearn import ensemble
 from tqdm import tqdm
 import os
-from sklearn.metrics import accuracy_score
 
 from scipy.special import softmax
-from sklearn.tree import DecisionTreeClassifier
 
 from .PruningClassifier import PruningClassifier
 
-def create_mini_batches(inputs, targets, data, batch_size, shuffle=False):
+def create_mini_batches(inputs, targets, batch_size, shuffle=False):
     """ Create an mini-batch like iterator for the given inputs / target / data. Shamelessly copied from https://stackoverflow.com/questions/38157972/how-to-implement-mini-batch-gradient-descent-in-python
     
     Parameters
@@ -21,8 +20,6 @@ def create_mini_batches(inputs, targets, data, batch_size, shuffle=False):
         The inputs to be iterated in mini batches
     targets : array-like vector or matrix 
         The targets to be iterated in mini batches
-    data : array-like vector or matrix 
-        The data to be iterated in mini batches
     batch_size : int
         The mini batch size
     shuffle : bool, default False
@@ -42,7 +39,7 @@ def create_mini_batches(inputs, targets, data, batch_size, shuffle=False):
         
         start_idx += batch_size
 
-        yield inputs[excerpt], targets[excerpt], data[excerpt]
+        yield inputs[excerpt], targets[excerpt]
 
 def to_prob_simplex(x):
     """ Projects the given vector to the probability simplex so that :math:`\\sum_{i=1}^k x_i = 1, x_i \\in [0,1]`. 
@@ -144,7 +141,7 @@ def avg_path_len_regularizer(est):
         node_id, parent  = stack.pop()
         node_parent[node_id] = parent
         
-        # childrens of a node are different
+        # children of a node are different
         is_split_node = children_left[node_id] != children_right[node_id]
         
         # add data of split point to the stack to go through
@@ -173,6 +170,56 @@ def avg_path_len_regularizer(est):
 
     return node_cost[0]
 
+def loss_and_deriv(loss_type, output, target):
+    n_classes = output.shape[1]
+
+    if loss_type == "mse":
+        target_one_hot = np.array( [ [1.0 if y == i else 0.0 for i in range(n_classes)] for y in target] )
+        loss = (output - target_one_hot) * (output - target_one_hot)
+        loss_deriv = 2 * (output - target_one_hot)
+    elif loss_type == "cross-entropy":
+        target_one_hot = np.array( [ [1.0 if y == i else 0.0 for i in range(n_classes)] for y in target] )
+        p = softmax(output, axis=1)
+        loss = -target_one_hot*np.log(p + 1e-7)
+        m = target.shape[0]
+        loss_deriv = softmax(output, axis=1)
+        loss_deriv[range(m),target_one_hot.argmax(axis=1)] -= 1
+    elif loss_type == "hinge2":
+        target_one_hot = np.array( [ [1.0 if y == i else -1.0 for i in range(n_classes)] for y in target] )
+        zeros = np.zeros_like(target_one_hot)
+        loss = np.maximum(1.0 - target_one_hot * output, zeros)**2
+        loss_deriv = - 2 * target_one_hot * np.maximum(1.0 - target_one_hot * output, zeros) 
+    else:
+        raise ValueError("Currently only the losses {{cross-entropy, mse, hinge2}} are supported, but you provided: {}".format(loss_type))
+    
+    return loss, loss_deriv
+
+def prox(w, prox_type, normalize, l_reg, step_size):
+    if prox_type == "L0":
+        tmp = np.sqrt(2 * l_reg * step_size)
+        tmp_w = np.array([0 if abs(wi) < tmp else wi for wi in w])
+    elif prox_type == "L1":
+        sign = np.sign(w)
+        tmp_w = np.abs(w) - l_reg*step_size
+        tmp_w = sign*np.maximum(tmp_w,0)
+    elif prox_type == "hard-L0":
+        top_K = np.argsort(w)[-l_reg:]
+        tmp_w = np.array([wi if i in top_K else 0 for i,wi in enumerate(w)])
+
+    # If set, normalize the weights. Note that we use the support of tmp_w for the projection onto the probability simplex
+    # as described in http://proceedings.mlr.press/v28/kyrillidis13.pdf
+    # Thus, we first need to extract the nonzero weights, project these and then copy them back into corresponding array
+    if normalize and len(tmp_w) > 0:
+        nonzero_idx = np.nonzero(tmp_w)[0]
+        nonzero_w = tmp_w[nonzero_idx]
+        nonzero_w = to_prob_simplex(nonzero_w)
+        new_w = np.zeros((len(tmp_w)))
+        for i,wi in zip(nonzero_idx, nonzero_w):
+            new_w[i] = wi
+        return new_w
+    else:
+        return tmp_w
+
 class ProxPruningClassifier(PruningClassifier):
     """ (Heterogeneous) Pruning via Proximal Gradient Descent
     
@@ -191,14 +238,14 @@ class ProxPruningClassifier(PruningClassifier):
     The regularizer :math:`R_1` is used to select smaller trees, whereas the regularizer :math:`R_2` is used to select fewer trees from the ensemble.
 
     ----------
-    step_size : float, default is 0.1
-        The step_size used for stochastic gradient descent for opt 
     loss : str, default is ``"mse"``
         The loss function for training. Should be one of ``{"mse", "cross-entropy", "hinge2"}``. 
 
         - ``"mse"``: :math:`L(f(x),y) = \\sum_{i=1}^C (f(x)_i - y_i)^2`
         - ``"cross-entropy"``: :math:`L(f(x),y) = \\sum_{i=1}^C y_i \\log(s(f(x))_i)`, where :math:`s` is the softmax function.
         - ``"hinge2"``: :math:`L(f(x),y) = \\sum_{i=1}^C \\max(0, 1 - y_i \\cdot f(x)_i )^2`
+    step_size : float, default is 0.1
+        The step_size used for stochastic gradient descent for opt 
     normalize_weights : boolean, default is True
         True if nonzero weights should be projected onto the probability simplex, that is they should sum to 1. 
     ensemble_regularizer : str or None, default is ``"hard-L0"``
@@ -216,13 +263,11 @@ class ProxPruningClassifier(PruningClassifier):
     l_tree_reg : float, default is 0
         The ``tree_regularizer`` regularization strength :math:`\\lambda_1`. The ``tree_regularizer`` is scaled by this value. 
     batch_size: int, default is 256
-        The batch sized used for PSGD
+        The batch sized used for PSGD. Use 0 for the entire dataset per batch which leads to Prox Gradient Descent.
     epochs : int, default is 1
         The number of epochs PSGD is run.
     verbose : boolean, default is False
         If true, shows a progress bar via tqdm and some statistics
-    update_leaves : boolean, default is False
-        If true, then leave nodes of each tree are also updated via PSGD.
     out_path: str or None, default is None
         If not None, then statistics are stored in a file called ``$out_path/epoch_$i.npy`` for epoch $i.
     """
@@ -232,22 +277,21 @@ class ProxPruningClassifier(PruningClassifier):
         step_size = 1e-1,
         ensemble_regularizer = "hard-L0",
         l_ensemble_reg = 0,  
-        tree_regularizer = node_regularizer,
-        l_tree_reg = 0,
+        regularizer = node_regularizer,
+        l_reg = 0,
         normalize_weights = True,
-        update_weights = True,
         batch_size = 256,
         epochs = 1,
         verbose = False, 
-        update_leaves = False,
-        out_path = None,
-        eval_every_epochs = None):
+        optimizer = "adam"
+        ):
 
-        assert loss in ["mse","cross-entropy","hinge2","ncl"], "Currently only {{mse, cross-entropy, hinge2, ncl}} loss is supported"
-        assert ensemble_regularizer is None or ensemble_regularizer in ["none","L0", "L1", "hard-L0"], "Currently only {{none,L0, L1, hard-L0}} the ensemble regularizer is supported"
-        assert l_tree_reg >= 0, "l_reg must be greater or equal to 0"
-        assert batch_size >= 1, "batch_size must be at-least 1"
-        assert epochs >= 1, "epochs must be at-least 1"
+        assert loss in ["mse","cross-entropy","hinge2"], "Currently only {{mse, cross-entropy, hinge2}} loss is supported, but you gave {}".format(loss)
+        assert ensemble_regularizer is None or ensemble_regularizer in ["none","L0", "L1", "hard-L0"], "Currently only {{none,L0, L1, hard-L0}} the ensemble regularizer is supported, but you gave {}".format(ensemble_regularizer)
+        assert l_reg >= 0, "l_reg must be greater or equal to 0, but you gave {}".format(l_reg)
+        assert batch_size >= 0, "batch_size must be >= 0, but you gave {}".format(batch_size)
+        assert epochs >= 1, "epochs must be at-least 1, but you gave {}".format(epochs)
+        assert optimizer in ["adam", "sgd"], "Optmizer must be on of {{adam, sgd}} but you gave {}".format(optimizer)
 
         if ensemble_regularizer == "hard-L0":
             assert l_ensemble_reg >= 1 or l_ensemble_reg == 0, "You chose ensemble_regularizer = hard-L0, but set 0 < l_ensemble_reg < 1 which does not really makes sense. If hard-L0 is set, then l_ensemble_reg is the maximum number of estimators in the pruned ensemble, thus likely an integer value >= 1."
@@ -255,189 +299,113 @@ class ProxPruningClassifier(PruningClassifier):
         super().__init__()
         
         self.loss = loss
-        self.step_size = step_size
+        self.lr = step_size
         self.ensemble_regularizer = ensemble_regularizer
         self.l_ensemble_reg = l_ensemble_reg
-        self.tree_regularizer = tree_regularizer
-        self.l_tree_reg = l_tree_reg
+        self.regularizer = regularizer
+        self.l_reg = l_reg
         self.normalize_weights = normalize_weights
         self.batch_size = batch_size
         self.epochs = epochs
         self.verbose = verbose
-        self.update_leaves = update_leaves
-        self.out_path = out_path
-        self.eval_every_epochs = eval_every_epochs
-        self.update_weights = update_weights
+        self.optimizer = optimizer
 
-    def next(self, proba, target, data):
-        # If we update the leaves, then proba also changes and we need to recompute them. Otherwise we can just use the pre-computed probas
-        if self.update_leaves:
-            proba = self._individual_proba(data)
-        else:
-            proba = np.swapaxes(proba, 0, 1)
-
-        output = np.array([w * p for w,p in zip(proba, self.weights_)]).sum(axis=0)
-
-        batch_size = output.shape[0]
-        accuracy = (output.argmax(axis=1) == target) * 100.0
-        n_trees = [self.num_trees() for _ in range(batch_size)]
-        n_param = [self.num_parameters() for _ in range(batch_size)]
-        
-        # Compute the appropriate loss. 
-        if self.loss == "mse":
-            target_one_hot = np.array( [ [1.0 if y == i else 0.0 for i in range(self.n_classes_)] for y in target] )
-            loss = (output - target_one_hot) * (output - target_one_hot)
-            loss_deriv = 2 * (output - target_one_hot)
-        elif self.loss == "cross-entropy":
-            target_one_hot = np.array( [ [1.0 if y == i else 0.0 for i in range(self.n_classes_)] for y in target] )
-            p = softmax(output, axis=1)
-            loss = -target_one_hot*np.log(p + 1e-7)
-            m = target.shape[0]
-            loss_deriv = softmax(output, axis=1)
-            loss_deriv[range(m),target_one_hot.argmax(axis=1)] -= 1
-        elif self.loss == "hinge2":
-            target_one_hot = np.array( [ [1.0 if y == i else -1.0 for i in range(self.n_classes_)] for y in target] )
-            zeros = np.zeros_like(target_one_hot)
-            loss = np.maximum(1.0 - target_one_hot * output, zeros)**2
-            loss_deriv = - 2 * target_one_hot * np.maximum(1.0 - target_one_hot * output, zeros) 
-        elif self.loss == "ncl":
-            # TODO
-            pass
-        else:
-            raise "Currently only the losses {{cross-entropy, mse, hinge2}} are supported, but you provided: {}".format(self.loss)
-        
-        loss = np.sum(np.mean(loss,axis=1))
-        
-        if self.ensemble_regularizer == "L0":
-            loss += self.l_ensemble_reg * np.linalg.norm(self.weights_,0)
-        elif self.ensemble_regularizer == "L1":
-            loss += self.l_ensemble_reg * np.linalg.norm(self.weights_,1)
-
-        # Compute the gradients for the loss
-        directions = np.mean(proba*loss_deriv,axis=(1,2))
-
-        # Compute the appropriate regularizer
-        if self.tree_regularizer is not None and self.l_tree_reg > 0:
-            #tree_regs = np.array([ self.tree_regularizer(est) for est in self.estimators_])
-
-            loss += self.l_tree_reg * np.sum( [ (w * tr) for w, tr in zip(self.weights_, self.tree_regs)] )
-            tree_reg_deriv = self.l_tree_reg * self.tree_regs
-        else:
-            tree_reg_deriv = 0
-
-        if self.update_leaves:
-            # compute direction per tree
-            # tree_deriv = proba*loss_deriv
-            for i, h in enumerate(self.estimators_):
-                tree_grad = (self.weights_[i] * loss_deriv)[:,np.newaxis,:]
-                # find idx
-                idx = h.apply(data)
-                h.tree_.value[idx] = h.tree_.value[idx] - self.step_size * tree_grad[:,:,h.classes_.astype(int)]
-                # update model
-                #h.tree_.value[idx] = h.tree_.value[idx] - self.step_size*h.tree_.value[idx]*tree_deriv[i,:,np.newaxis]
-                
-                #step = self.step_size*tree_deriv[i,:,np.newaxis]
-                #h.tree_.value[idx] = h.tree_.value[idx] - step[:,:,self.classes_.astype(int)]
-
-        if self.update_weights:
-            # TODO if update weights:
-            # Perform the gradient step + projection 
-            tmp_w = self.weights_ - self.step_size*directions - self.step_size*tree_reg_deriv 
-
-            if self.ensemble_regularizer == "L0":
-                tmp = np.sqrt(2 * self.l_ensemble_reg * self.step_size)
-                tmp_w = np.array([0 if abs(w) < tmp else w for w in tmp_w])
-            elif self.ensemble_regularizer == "L1":
-                sign = np.sign(tmp_w)
-                tmp_w = np.abs(tmp_w) - self.step_size*self.l_ensemble_reg
-                tmp_w = sign*np.maximum(tmp_w,0)
-            elif self.ensemble_regularizer == "hard-L0":
-                top_K = np.argsort(tmp_w)[-self.l_ensemble_reg:]
-                tmp_w = np.array([w if i in top_K else 0 for i,w in enumerate(tmp_w)])
-
-            # If set, normalize the weights. Note that we use the support of tmp_w for the projection onto the probability simplex
-            # as described in http://proceedings.mlr.press/v28/kyrillidis13.pdf
-            # Thus, we first need to extract the nonzero weights, project these and then copy them back into corresponding array
-            
-            if self.normalize_weights and len(tmp_w) > 0:
-                nonzero_idx = np.nonzero(tmp_w)[0]
-                nonzero_w = tmp_w[nonzero_idx]
-                nonzero_w = to_prob_simplex(nonzero_w)
-                self.weights_ = np.zeros((len(tmp_w)))
-                for i,w in zip(nonzero_idx, nonzero_w):
-                    self.weights_[i] = w
-            else:
-                self.weights_ = tmp_w
-        
-        return {"loss":loss, "accuracy": accuracy, "num_trees": n_trees, "num_parameters" : n_param}
-
-    def num_trees(self):
+    def num_estimators(self):
         """ Returns the number of nonzero weights """
         return np.count_nonzero(self.weights_)
 
-    def num_parameters(self):
-        """ Returns the total number of decision nodes across all trees of the entire ensemble for all trees with nonzero weight. """
-        return sum( [ est.tree_.node_count if w != 0 else 0 for w, est in zip(self.weights_, self.estimators_)] )
+    # def num_parameters(self):
+    #     """ Returns the total number of decision nodes across all estimators of the entire ensemble for all estimators with nonzero weight. """
+    #     return sum( [ est.tree_.node_count if w != 0 else 0 for w, est in zip(self.weights_, self.estimators_)] )
 
     def prune_(self, proba, target, data):
         proba = np.swapaxes(proba, 0, 1)
         self.weights_ = np.array([1.0 / proba.shape[1] for _ in range(proba.shape[1])])
 
-        if self.update_leaves:
-            # SKlearn stores the raw counts instead of probabilities. For SGD its better to have the 
-            # probabilities for numerical stability. 
-            # tree.tree_.value is not writeable, but we can modify the values inplace. Thus we 
-            # use [:] to copy the array into the normalized array. Also tree.tree_.value has a strange shape (batch_size, 1, n_classes)
-            for tree in self.estimators_:
-                tree.tree_.value[:] = tree.tree_.value / tree.tree_.value.sum(axis=(1,2))[:,np.newaxis,np.newaxis]
+        if self.regularizer is not None and self.l_reg > 0:
+            self.regularizer_evals = np.array([ self.regularizer(est) for est in self.estimators_])
         
-        if self.tree_regularizer is not None and self.l_tree_reg > 0:
-            self.tree_regs = np.array([ self.tree_regularizer(est) for est in self.estimators_])
+        if self.batch_size == 0:
+            self.batch_size = proba.shape[0]
+
+        if self.optimizer == "adam":
+            m = np.zeros_like(self.weights_)
+            v = np.zeros_like(self.weights_)
+            t = 1
 
         for epoch in range(self.epochs):
+            mini_batches = create_mini_batches(proba, target, self.batch_size, True) 
 
-            mini_batches = create_mini_batches(proba, target, data, self.batch_size, True) 
-
-            times = []
-            total_time = 0
-            metrics = {}
-            example_cnt = 0
+            batch_cnt = 0
+            time_sum = 0
+            loss_sum = 0
+            n_estimators_sum = 0
+            accuracy_sum = 0
 
             with tqdm(total=proba.shape[0], ncols=150, disable = not self.verbose) as pbar:
                 for batch in mini_batches:
-                    bproba, btarget, bdata = batch 
+                    bproba, btarget = batch 
 
                     # Update Model                    
                     start_time = time.time()
-                    batch_metrics = self.next(bproba, btarget, bdata)
+
+                    bproba = np.swapaxes(bproba, 0, 1)
+                    output = np.array([w * p for w,p in zip(bproba, self.weights_)]).sum(axis=0)
+
+                    # Compute the appropriate loss and its derivative
+                    loss, loss_deriv = loss_and_deriv(self.loss, output, btarget)
+                    loss = loss.mean() #np.sum(np.mean(loss,axis=1))
+
+                    # Compute the gradients for the loss
+                    directions = np.mean(bproba*loss_deriv,axis=(1,2))
+
+                    # Compute the appropriate regularizer and its derivative
+                    if self.regularizer is not None and self.l_reg > 0:
+                        loss += self.l_reg * np.sum( [ (w * tr) for w, tr in zip(self.weights_, self.regularizer_evals)] )
+                        reg_deriv = self.l_reg * self.regularizer_evals
+                    else:
+                        reg_deriv = 0
+
+                    # Perform the gradient step + projection 
+                    grad = directions + reg_deriv
+                    if self.optimizer == "sgd":
+                        # sgd
+                        tmp_w = self.weights_ - self.lr*grad 
+                    else:
+                        # adam
+                        beta1 = 0.9
+                        beta2 = 0.999
+                        m = beta1 * m + (1-beta1) * grad 
+                        v = beta2 * v + (1-beta2) * (grad ** 2) 
+                        m_corrected = m / (1-beta1**t)
+                        v_corrected = v / (1-beta2**t)
+                        tmp_w = self.weights_ - self.lr * m_corrected / (np.sqrt(v_corrected) + 1e-8)
+                        t += 1
+
+                    self.weights_ = prox(tmp_w, self.ensemble_regularizer, self.normalize_weights, self.l_ensemble_reg, self.lr)
+                    #print(self.weights_)
+                    if self.ensemble_regularizer == "L0":
+                        loss += self.l_ensemble_reg * np.linalg.norm(self.weights_,0)
+                    elif self.ensemble_regularizer == "L1":
+                        loss += self.l_ensemble_reg * np.linalg.norm(self.weights_,1)
+
+                    loss_sum += loss
+                    accuracy_sum += (output.argmax(axis=1) == btarget).mean() * 100.0
+                    n_estimators_sum += self.num_estimators()
                     batch_time = time.time() - start_time
 
-                    # Extract statistics
-                    for key,val in batch_metrics.items():
-                        metrics[key] = np.concatenate( (metrics.get(key,[]), val), axis=None )
-                        metrics[key + "_sum"] = metrics.get( key + "_sum",0) + np.sum(val)
-
-                    example_cnt += bproba.shape[0]
-                    pbar.update(bproba.shape[0])
+                    batch_cnt += 1 
+                    pbar.update(bproba.shape[1])
                     
-                    # TODO ADD times to metrics and write it to disk
-                    times.append(batch_time)
-                    total_time += batch_time
-
-                    m_str = ""
-                    for key,val in metrics.items():
-                        if "_sum" in key:
-                            m_str += "{} {:2.4f} ".format(key.split("_sum")[0], val / example_cnt)
-                    
-                    desc = '[{}/{}] {} time_item {:2.4f}'.format(
+                    time_sum += batch_time
+                    desc = '[{}/{}] loss {:2.4f} accuracy {:2.4f} n_estimators {:2.4f} time_item {:2.4f}'.format(
                         epoch, 
                         self.epochs-1, 
-                        m_str,
-                        total_time / example_cnt
+                        loss_sum / batch_cnt,
+                        accuracy_sum / batch_cnt, 
+                        n_estimators_sum / batch_cnt,
+                        time_sum / batch_cnt
                     )
                     pbar.set_description(desc)
-                
-                if self.eval_every_epochs is not None and epoch % self.eval_every_epochs == 0 and self.out_path is not None:
-                    np.save(os.path.join(self.out_path, "epoch_{}.npy".format(epoch)), metrics, allow_pickle=True)
     
         return [i for i in range(len(self.weights_)) if self.weights_[i] > 0], [w for w in self.weights_ if w > 0]
