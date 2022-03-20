@@ -84,7 +84,7 @@
 <span id="proximal-gradient-descent"></span><h1>Proximal Gradient Descent<a class="headerlink" href="#module-PyPruning.ProxPruningClassifier" title="Permalink to this headline"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="PyPruning.ProxPruningClassifier.ProxPruningClassifier">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">PyPruning.ProxPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">ProxPruningClassifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">loss='cross-entropy'</span></em>, <em class="sig-param"><span class="pre">step_size=0.1</span></em>, <em class="sig-param"><span class="pre">ensemble_regularizer='hard-L0'</span></em>, <em class="sig-param"><span class="pre">l_ensemble_reg=0</span></em>, <em class="sig-param"><span class="pre">tree_regularizer=&lt;function</span> <span class="pre">node_regularizer&gt;</span></em>, <em class="sig-param"><span class="pre">l_tree_reg=0</span></em>, <em class="sig-param"><span class="pre">normalize_weights=True</span></em>, <em class="sig-param"><span class="pre">update_weights=True</span></em>, <em class="sig-param"><span class="pre">batch_size=256</span></em>, <em class="sig-param"><span class="pre">epochs=1</span></em>, <em class="sig-param"><span class="pre">verbose=False</span></em>, <em class="sig-param"><span class="pre">update_leaves=False</span></em>, <em class="sig-param"><span class="pre">out_path=None</span></em>, <em class="sig-param"><span class="pre">eval_every_epochs=None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.ProxPruningClassifier.ProxPruningClassifier" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PyPruning.ProxPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">ProxPruningClassifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss='cross-entropy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_size=0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensemble_regularizer='hard-L0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_ensemble_reg=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regularizer=&lt;function</span> <span class="pre">node_regularizer&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_reg=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize_weights=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size=256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epochs=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer='adam'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.ProxPruningClassifier.ProxPruningClassifier" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="extending.html#PyPruning.PruningClassifier.PruningClassifier" title="PyPruning.PruningClassifier.PruningClassifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyPruning.PruningClassifier.PruningClassifier</span></code></a></p>
 <p>(Heterogeneous) Pruning via Proximal Gradient Descent</p>
 <p>This pruning method directly minimizes a constrained loss function <span class="math notranslate nohighlight">\(L\)</span> including a regularizer <span class="math notranslate nohighlight">\(R_1\)</span> via (stochastic) proximal gradient descent. There are two sets of constraints available. When soft constraints are used, then the following function is minimized</p>
@@ -95,14 +95,14 @@
 \[\arg\min_w L \left(\sum_{i=1}^M w_i h_i(x), y\right) + \lambda_1 \sum_{i=1}^K w_i R_1(h_i) \text{ s.t. } R_2(w) \le \lambda_2\]</div>
 <p>The regularizer <span class="math notranslate nohighlight">\(R_1\)</span> is used to select smaller trees, whereas the regularizer <span class="math notranslate nohighlight">\(R_2\)</span> is used to select fewer trees from the ensemble.</p>
 <dl>
-<dt>step_size<span class="classifier">float, default is 0.1</span></dt><dd><p>The step_size used for stochastic gradient descent for opt</p>
-</dd>
 <dt>loss<span class="classifier">str, default is <code class="docutils literal notranslate"><span class="pre">&quot;mse&quot;</span></code></span></dt><dd><p>The loss function for training. Should be one of <code class="docutils literal notranslate"><span class="pre">{&quot;mse&quot;,</span> <span class="pre">&quot;cross-entropy&quot;,</span> <span class="pre">&quot;hinge2&quot;}</span></code>.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;mse&quot;</span></code>: <span class="math notranslate nohighlight">\(L(f(x),y) = \sum_{i=1}^C (f(x)_i - y_i)^2\)</span></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;cross-entropy&quot;</span></code>: <span class="math notranslate nohighlight">\(L(f(x),y) = \sum_{i=1}^C y_i \log(s(f(x))_i)\)</span>, where <span class="math notranslate nohighlight">\(s\)</span> is the softmax function.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;hinge2&quot;</span></code>: <span class="math notranslate nohighlight">\(L(f(x),y) = \sum_{i=1}^C \max(0, 1 - y_i \cdot f(x)_i )^2\)</span></p></li>
 </ul>
+</dd>
+<dt>step_size<span class="classifier">float, default is 0.1</span></dt><dd><p>The step_size used for stochastic gradient descent for opt</p>
 </dd>
 <dt>normalize_weights<span class="classifier">boolean, default is True</span></dt><dd><p>True if nonzero weights should be projected onto the probability simplex, that is they should sum to 1.</p>
 </dd>
@@ -120,31 +120,18 @@
 </dd>
 <dt>l_tree_reg<span class="classifier">float, default is 0</span></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">tree_regularizer</span></code> regularization strength <span class="math notranslate nohighlight">\(\lambda_1\)</span>. The <code class="docutils literal notranslate"><span class="pre">tree_regularizer</span></code> is scaled by this value.</p>
 </dd>
-<dt>batch_size: int, default is 256</dt><dd><p>The batch sized used for PSGD</p>
+<dt>batch_size: int, default is 256</dt><dd><p>The batch sized used for PSGD. Use 0 for the entire dataset per batch which leads to Prox Gradient Descent.</p>
 </dd>
 <dt>epochs<span class="classifier">int, default is 1</span></dt><dd><p>The number of epochs PSGD is run.</p>
 </dd>
 <dt>verbose<span class="classifier">boolean, default is False</span></dt><dd><p>If true, shows a progress bar via tqdm and some statistics</p>
 </dd>
-<dt>update_leaves<span class="classifier">boolean, default is False</span></dt><dd><p>If true, then leave nodes of each tree are also updated via PSGD.</p>
-</dd>
 <dt>out_path: str or None, default is None</dt><dd><p>If not None, then statistics are stored in a file called <code class="docutils literal notranslate"><span class="pre">$out_path/epoch_$i.npy</span></code> for epoch $i.</p>
 </dd>
 </dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="PyPruning.ProxPruningClassifier.ProxPruningClassifier.next">
-<span class="sig-name descname"><span class="pre">next</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proba</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.ProxPruningClassifier.ProxPruningClassifier.next" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="PyPruning.ProxPruningClassifier.ProxPruningClassifier.num_parameters">
-<span class="sig-name descname"><span class="pre">num_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.ProxPruningClassifier.ProxPruningClassifier.num_parameters" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the total number of decision nodes across all trees of the entire ensemble for all trees with nonzero weight.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="PyPruning.ProxPruningClassifier.ProxPruningClassifier.num_trees">
-<span class="sig-name descname"><span class="pre">num_trees</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.ProxPruningClassifier.ProxPruningClassifier.num_trees" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="PyPruning.ProxPruningClassifier.ProxPruningClassifier.num_estimators">
+<span class="sig-name descname"><span class="pre">num_estimators</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.ProxPruningClassifier.ProxPruningClassifier.num_estimators" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the number of nonzero weights</p>
 </dd></dl>
 
@@ -200,20 +187,24 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="PyPruning.ProxPruningClassifier.create_mini_batches">
-<span class="sig-prename descclassname"><span class="pre">PyPruning.ProxPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">create_mini_batches</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shuffle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.ProxPruningClassifier.create_mini_batches" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">PyPruning.ProxPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">create_mini_batches</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shuffle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.ProxPruningClassifier.create_mini_batches" title="Permalink to this definition"></a></dt>
 <dd><p>Create an mini-batch like iterator for the given inputs / target / data. Shamelessly copied from <a class="reference external" href="https://stackoverflow.com/questions/38157972/how-to-implement-mini-batch-gradient-descent-in-python">https://stackoverflow.com/questions/38157972/how-to-implement-mini-batch-gradient-descent-in-python</a></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>inputs</strong> (<em>array-like vector</em><em> or </em><em>matrix</em>) – The inputs to be iterated in mini batches</p></li>
 <li><p><strong>targets</strong> (<em>array-like vector</em><em> or </em><em>matrix</em>) – The targets to be iterated in mini batches</p></li>
-<li><p><strong>data</strong> (<em>array-like vector</em><em> or </em><em>matrix</em>) – The data to be iterated in mini batches</p></li>
 <li><p><strong>batch_size</strong> (<em>int</em>) – The mini batch size</p></li>
 <li><p><strong>shuffle</strong> (<em>bool</em><em>, </em><em>default False</em>) – If True shuffle the batches</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PyPruning.ProxPruningClassifier.loss_and_deriv">
+<span class="sig-prename descclassname"><span class="pre">PyPruning.ProxPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">loss_and_deriv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.ProxPruningClassifier.loss_and_deriv" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="PyPruning.ProxPruningClassifier.node_regularizer">
@@ -235,6 +226,11 @@
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="PyPruning.ProxPruningClassifier.prox">
+<span class="sig-prename descclassname"><span class="pre">PyPruning.ProxPruningClassifier.</span></span><span class="sig-name descname"><span class="pre">prox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prox_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_reg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_size</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PyPruning.ProxPruningClassifier.prox" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="PyPruning.ProxPruningClassifier.to_prob_simplex">
