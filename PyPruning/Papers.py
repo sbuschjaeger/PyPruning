@@ -2,6 +2,8 @@ from functools import partial
 
 from sklearn.metrics import pairwise
 
+from .RandomPruningClassifier import RandomPruningClassifier
+
 from .MIQPPruningClassifier import MIQPPruningClassifier, combined, combined_error
 from .GreedyPruningClassifier import GreedyPruningClassifier, reduced_error, complementariness, margin_distance, drep
 from .RankPruningClassifier import RankPruningClassifier, individual_margin_diversity, individual_contribution, individual_error, individual_kappa_statistic, reference_vector, error_ambiguity
@@ -49,6 +51,9 @@ def create_pruner(method = "reduced_error", **kwargs):
     elif method == "cluster_centroids":
         # Original publication uses simulated annealing. We stick to kmeans  
         return ClusterPruningClassifier(cluster_estimators=kmeans, select_estimators=centroid_selector, **kwargs)
+    elif method == "random":
+        # Original publication uses simulated annealing. We stick to kmeans  
+        return RandomPruningClassifier(**kwargs)
     # elif method == "disagreement":
     #     return MIQPPruningClassifier(single_metric=None, pairwise_metric=disagreement, alpha = 1.0)
 
